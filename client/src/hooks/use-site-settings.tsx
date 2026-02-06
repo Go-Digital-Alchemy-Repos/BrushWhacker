@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { SiteSettings } from "@shared/schema";
 
 const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updatedAt"> = {
-  companyName: "BrushWhackers",
+  companyName: "Brush Boss",
   phone: "(704) 608-5783",
-  email: "info@brushwhackers.com",
+  email: "info@brushboss.com",
   serviceArea: "Charlotte, NC & Surrounding Areas",
   logoUrl: null,
   primaryColor: "28 65% 42%",

@@ -30,18 +30,18 @@ const categoryImages: Record<string, string> = {
 
 export default function Blog() {
   usePageMeta({
-    title: "Blog & Resources | BrushWhackers Charlotte, NC",
+    title: "Blog & Resources | Brush Boss Charlotte, NC",
     description: "Expert tips, guides, and insights about land clearing, brush removal, forestry mulching, and property management in the Charlotte, NC area.",
     canonicalUrl: "/blog",
     jsonLd: JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Blog",
-      "name": "BrushWhackers Blog",
+      "name": "Brush Boss Blog",
       "description": "Expert tips and guides about land clearing, forestry mulching, and property management in Charlotte, NC.",
       "url": `${window.location.origin}/blog`,
       "publisher": {
         "@type": "Organization",
-        "name": "BrushWhackers",
+        "name": "Brush Boss",
         "url": window.location.origin
       }
     }),

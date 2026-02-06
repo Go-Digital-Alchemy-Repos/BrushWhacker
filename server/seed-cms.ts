@@ -12,11 +12,11 @@ const SYSTEM_BLOCKS = [
     isSystem: true,
     defaultProps: {
       headline: "Professional Land Clearing & Forestry Mulching",
-      subheadline: "BrushWhackers delivers expert brush clearing, forestry mulching, and land management across the Charlotte, NC region.",
+      subheadline: "Brush Boss delivers expert brush clearing, forestry mulching, and land management across the Charlotte, NC region.",
       primaryCtaText: "Get a Free Quote",
       primaryCtaHref: "/quote",
       imageUrl: "/images/hero-land-clearing.jpg",
-      imageAlt: "BrushWhackers forestry mulching equipment clearing overgrown property",
+      imageAlt: "Brush Boss forestry mulching equipment clearing overgrown property",
     },
     schema: {
       fields: [
@@ -54,7 +54,7 @@ const SYSTEM_BLOCKS = [
     isSystem: true,
     defaultProps: {
       imageUrl: "/images/banner-clearing-site.jpg",
-      alt: "Cleared property by BrushWhackers in Charlotte NC",
+      alt: "Cleared property by Brush Boss in Charlotte NC",
       overlayText: "Transforming Overgrown Land Into Usable Space",
       height: "md",
     },
@@ -75,7 +75,7 @@ const SYSTEM_BLOCKS = [
     description: "Grid of feature cards with icons, titles, and descriptions.",
     isSystem: true,
     defaultProps: {
-      heading: "Why Choose BrushWhackers?",
+      heading: "Why Choose Brush Boss?",
       subheading: "We bring the right equipment, experience, and work ethic to every job across the Charlotte metro area.",
       features: [
         { title: "Heavy-Duty Equipment", description: "Commercial-grade forestry mulchers and track loaders handle the toughest terrain.", icon: "Truck" },
@@ -142,9 +142,9 @@ const SYSTEM_BLOCKS = [
     defaultProps: {
       heading: "What Our Customers Say",
       testimonials: [
-        { text: "BrushWhackers cleared 3 acres of overgrown brush in a single day. The property looks incredible and the mulch ground cover is already holding the soil in place.", name: "Mike R.", location: "Waxhaw, NC" },
+        { text: "Brush Boss cleared 3 acres of overgrown brush in a single day. The property looks incredible and the mulch ground cover is already holding the soil in place.", name: "Mike R.", location: "Waxhaw, NC" },
         { text: "Professional crew, serious equipment, and fair pricing. They cut trails through our back 5 acres and the access lanes are perfect for our UTVs.", name: "Sarah T.", location: "Mooresville, NC" },
-        { text: "We had a nightmare of kudzu and privet along our fence line. BrushWhackers knocked it all out and the fence is visible again for the first time in years.", name: "James K.", location: "Indian Trail, NC" },
+        { text: "We had a nightmare of kudzu and privet along our fence line. Brush Boss knocked it all out and the fence is visible again for the first time in years.", name: "James K.", location: "Indian Trail, NC" },
       ],
     },
     schema: {
@@ -261,7 +261,7 @@ const SYSTEM_BLOCKS = [
       heading: "Get In Touch",
       description: "Have questions about your property or need an estimate? Reach out and we'll get back to you within 24 hours.",
       phone: "(704) 608-5783",
-      email: "info@brushwhackers.com",
+      email: "info@brushboss.com",
       buttonText: "Request a Quote",
       buttonHref: "/quote",
     },
@@ -322,7 +322,7 @@ const THEME_PRESETS = [
   {
     key: "earth-pro",
     name: "Earth Pro",
-    description: "Warm earth tones with brown and green accents, matching the current BrushWhackers brand.",
+    description: "Warm earth tones with brown and green accents, matching the current Brush Boss brand.",
     isSystem: true,
     isActive: true,
     tokens: {

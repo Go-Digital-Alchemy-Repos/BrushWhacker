@@ -158,9 +158,9 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 
 export const siteSettings = pgTable("site_settings", {
   id: serial("id").primaryKey(),
-  companyName: text("company_name").notNull().default("BrushWhackers"),
+  companyName: text("company_name").notNull().default("Brush Boss"),
   phone: text("phone").notNull().default("(704) 608-5783"),
-  email: text("email").notNull().default("info@brushwhackers.com"),
+  email: text("email").notNull().default("info@brushboss.com"),
   serviceArea: text("service_area").notNull().default("Charlotte, NC & Surrounding Areas"),
   logoUrl: text("logo_url"),
   primaryColor: text("primary_color").notNull().default("28 65% 42%"),

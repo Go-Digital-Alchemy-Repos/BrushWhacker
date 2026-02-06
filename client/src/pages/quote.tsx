@@ -85,7 +85,7 @@ interface FormData {
 
 export default function Quote() {
   usePageMeta({
-    title: "Get a Quote | BrushWhackers",
+    title: "Get a Quote | Brush Boss",
     description: "Request a fast quote for forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal in the Charlotte area.",
     canonicalUrl: "/quote",
   });

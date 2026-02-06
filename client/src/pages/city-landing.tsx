@@ -19,7 +19,7 @@ export default function CityLanding() {
   const area = getServiceAreaBySlug(city || "");
 
   usePageMeta({
-    title: area?.metaTitle || "Service Area | BrushWhackers",
+    title: area?.metaTitle || "Service Area | Brush Boss",
     description: area?.metaDescription || "Professional land clearing services in the Charlotte, NC area.",
     canonicalUrl: `/areas/${city}`,
     ogType: "website",
@@ -28,7 +28,7 @@ export default function CityLanding() {
       "@graph": [
         {
           "@type": "LocalBusiness",
-          "name": "BrushWhackers",
+          "name": "Brush Boss",
           "telephone": "(704) 608-5783",
           "url": window.location.origin,
           "address": {
@@ -272,7 +272,7 @@ export default function CityLanding() {
           <SectionHeaderPro
             eyebrow="We Also Serve"
             title="Other Areas We Cover"
-            subtitle="BrushWhackers provides land clearing throughout the Charlotte metro and surrounding counties."
+            subtitle="Brush Boss provides land clearing throughout the Charlotte metro and surrounding counties."
           />
           <div className="flex flex-wrap justify-center gap-2">
             {SERVICE_AREAS.filter(a => a.slug !== area.slug).map((otherArea) => (

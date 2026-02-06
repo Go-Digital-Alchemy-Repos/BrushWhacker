@@ -13,7 +13,7 @@ interface PageMeta {
   twitterCard?: "summary" | "summary_large_image";
 }
 
-const SITE_NAME = "BrushWhackers";
+const SITE_NAME = "Brush Boss";
 const BASE_URL = typeof window !== "undefined" ? window.location.origin : "";
 
 function setMetaTag(property: string, content: string, isProperty = false) {

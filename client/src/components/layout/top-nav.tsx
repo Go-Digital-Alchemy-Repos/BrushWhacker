@@ -37,7 +37,7 @@ export function TopNav() {
               <TreePine className="h-8 w-8 text-primary" />
             )}
             <span className="text-xl font-bold tracking-tight" data-testid="text-company-name">
-              {settings.companyName === "BrushWhackers" ? (
+              {settings.companyName === "Brush Boss" ? (
                 <>Brush<span className="text-primary">Whackers</span></>
               ) : (
                 settings.companyName

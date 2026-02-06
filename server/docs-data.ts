@@ -781,7 +781,7 @@ Ideal for the homepage or location-specific landing pages.
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "BrushWhackers",
+  "name": "Brush Boss",
   "description": "...",
   "url": "/",
   "telephone": "",
@@ -806,7 +806,7 @@ For individual service pages (forestry mulching, trail cutting, etc.).
   "@type": "Service",
   "name": "Forestry Mulching",
   "description": "...",
-  "provider": { "@type": "LocalBusiness", "name": "BrushWhackers" },
+  "provider": { "@type": "LocalBusiness", "name": "Brush Boss" },
   "areaServed": { "@type": "City", "name": "Charlotte, NC" }
 }
 \`\`\`
@@ -822,7 +822,7 @@ For blog-style content pages.
   "@type": "Article",
   "headline": "...",
   "description": "...",
-  "author": { "@type": "Organization", "name": "BrushWhackers" }
+  "author": { "@type": "Organization", "name": "Brush Boss" }
 }
 \`\`\`
 
@@ -1149,7 +1149,7 @@ export async function seedDocsEntries() {
       tags: entry.tags,
       related: [],
       version: "1.0",
-      author: "system",
+      author: "Brush Boss Engineering",
     });
     inserted++;
     existingSlugs.add(slug);

@@ -12,7 +12,7 @@ export default function ServiceDetail() {
   const service = getServiceBySlug(slug || "");
 
   usePageMeta({
-    title: service?.metaTitle || "Service | BrushWhackers",
+    title: service?.metaTitle || "Service | Brush Boss",
     description: service?.metaDescription || "Professional land clearing services in Charlotte, NC.",
     canonicalUrl: `/services/${slug}`,
     ogType: "website",
@@ -25,7 +25,7 @@ export default function ServiceDetail() {
           "description": service.description,
           "provider": {
             "@type": "LocalBusiness",
-            "name": "BrushWhackers",
+            "name": "Brush Boss",
             "telephone": "(704) 608-5783",
             "address": { "@type": "PostalAddress", "addressLocality": "Charlotte", "addressRegion": "NC", "addressCountry": "US" }
           },

@@ -55,9 +55,9 @@ export default function AdminBranding() {
   });
 
   const [form, setForm] = useState({
-    companyName: "BrushWhackers",
+    companyName: "Brush Boss",
     phone: "(704) 608-5783",
-    email: "info@brushwhackers.com",
+    email: "info@brushboss.com",
     serviceArea: "Charlotte, NC & Surrounding Areas",
     logoUrl: "",
     primaryColor: "#b07430",
@@ -213,19 +213,19 @@ export default function AdminBranding() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="socialFacebook">Facebook URL</Label>
-                    <Input id="socialFacebook" value={form.socialFacebook} onChange={e => update("socialFacebook", e.target.value)} placeholder="https://facebook.com/brushwhackers" data-testid="input-social-facebook" />
+                    <Input id="socialFacebook" value={form.socialFacebook} onChange={e => update("socialFacebook", e.target.value)} placeholder="https://facebook.com/brushboss" data-testid="input-social-facebook" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="socialInstagram">Instagram URL</Label>
-                    <Input id="socialInstagram" value={form.socialInstagram} onChange={e => update("socialInstagram", e.target.value)} placeholder="https://instagram.com/brushwhackers" data-testid="input-social-instagram" />
+                    <Input id="socialInstagram" value={form.socialInstagram} onChange={e => update("socialInstagram", e.target.value)} placeholder="https://instagram.com/brushboss" data-testid="input-social-instagram" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="socialYoutube">YouTube URL</Label>
-                    <Input id="socialYoutube" value={form.socialYoutube} onChange={e => update("socialYoutube", e.target.value)} placeholder="https://youtube.com/@brushwhackers" data-testid="input-social-youtube" />
+                    <Input id="socialYoutube" value={form.socialYoutube} onChange={e => update("socialYoutube", e.target.value)} placeholder="https://youtube.com/@brushboss" data-testid="input-social-youtube" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="socialGoogle">Google Business URL</Label>
-                    <Input id="socialGoogle" value={form.socialGoogle} onChange={e => update("socialGoogle", e.target.value)} placeholder="https://g.page/brushwhackers" data-testid="input-social-google" />
+                    <Input id="socialGoogle" value={form.socialGoogle} onChange={e => update("socialGoogle", e.target.value)} placeholder="https://g.page/brushboss" data-testid="input-social-google" />
                   </div>
                 </div>
               </CardContent>

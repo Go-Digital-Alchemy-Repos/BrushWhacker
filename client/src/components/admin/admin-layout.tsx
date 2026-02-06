@@ -167,7 +167,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex items-center gap-2 px-4 h-14 border-b shrink-0">
           <TreePine className="h-5 w-5 text-primary" />
-          <span className="font-bold text-sm">BrushWhackers</span>
+          <span className="font-bold text-sm">Brush Boss</span>
           <button
             className="lg:hidden ml-auto p-1"
             onClick={() => setMobileOpen(false)}

@@ -8,7 +8,7 @@ import type { AdminRole } from "@shared/schema";
 import { storage } from "./storage";
 
 const LEGACY_ADMIN_USERNAME = "admin";
-const LEGACY_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "brushwhackers2026";
+const LEGACY_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "brushboss2026";
 
 declare global {
   namespace Express {
@@ -102,16 +102,16 @@ export function requireRole(allowedRoles: AdminRole[]): RequestHandler {
 
 export async function seedDefaultAdmin() {
   try {
-    const existing = await storage.getAdminUserByEmail("admin@brushwhackers.com");
+    const existing = await storage.getAdminUserByEmail("admin@brushboss.com");
     if (!existing) {
       const hash = await bcrypt.hash(LEGACY_ADMIN_PASSWORD, 10);
       await storage.createAdminUser({
-        email: "admin@brushwhackers.com",
+        email: "admin@brushboss.com",
         passwordHash: hash,
         displayName: "Super Admin",
         role: "super_admin",
       });
-      console.log("Seeded default super admin user: admin@brushwhackers.com");
+      console.log("Seeded default super admin user: admin@brushboss.com");
     }
   } catch (err) {
     console.error("Failed to seed default admin:", err);

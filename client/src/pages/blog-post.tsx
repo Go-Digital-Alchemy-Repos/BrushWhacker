@@ -65,7 +65,7 @@ export default function BlogPostPage() {
   });
 
   usePageMeta({
-    title: post ? `${post.title} | BrushWhackers Blog` : "Blog | BrushWhackers Charlotte, NC",
+    title: post ? `${post.title} | Brush Boss Blog` : "Blog | Brush Boss Charlotte, NC",
     description: post?.excerpt || "Expert tips and guides about land clearing in Charlotte, NC.",
     canonicalUrl: `/blog/${slug}`,
     ogType: post ? "article" : "website",
@@ -76,10 +76,10 @@ export default function BlogPostPage() {
       "description": post.excerpt,
       "datePublished": post.publishedAt,
       "dateModified": post.updatedAt || post.publishedAt,
-      "author": { "@type": "Organization", "name": "BrushWhackers" },
+      "author": { "@type": "Organization", "name": "Brush Boss" },
       "publisher": {
         "@type": "Organization",
-        "name": "BrushWhackers",
+        "name": "Brush Boss",
         "url": window.location.origin
       },
       "mainEntityOfPage": {
@@ -156,7 +156,7 @@ export default function BlogPostPage() {
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-lg">Ready to Clear Your Property?</h3>
                 <p className="text-sm text-muted-foreground mt-2 mb-4">
-                  Get a free, no-obligation quote from BrushWhackers. We serve Charlotte, NC and surrounding areas within a 50-mile radius.
+                  Get a free, no-obligation quote from Brush Boss. We serve Charlotte, NC and surrounding areas within a 50-mile radius.
                 </p>
                 <Link href="/quote">
                   <Button data-testid="blog-cta-quote">Get a Free Quote</Button>
