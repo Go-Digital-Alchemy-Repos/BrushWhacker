@@ -34,6 +34,7 @@ The application is built with a React + Vite frontend, a Node/Express backend, a
 - **CRM**: Manages leads with detailed tracking, notes, activity timelines, and an export function. Projects allow converting completed leads into portfolio galleries with before/after images. Testimonials manage customer reviews with star ratings for CMS blocks.
 - **Dynamic CMS Blocks**: `project_gallery` and `testimonials_slider` blocks fetch published data from the API at render time, enabling drag-and-drop placement on any CMS page.
 - **Services**: Six core services are defined, each with dedicated SEO-optimized pages.
+- **City Landing Pages**: 12 city-specific landing pages at `/areas/:city-slug` for local SEO. Each page has unique content per city, covers all 6 services with city-specific blurbs, includes FAQs, project examples, and full JSON-LD structured data. Pages are linked from home page service area badges only (not in main nav). Cities: Charlotte, Huntersville, Concord, Matthews, Mint Hill, Fort Mill, Belmont, Waxhaw, Indian Trail, Monroe, Lake Norman, Mooresville. Data defined in `client/src/lib/service-areas.ts`.
 - **Pricing Model**: Four tiers: Hourly, Half-Day, Full-Day, and By the Acre.
 
 **System Design Choices:**

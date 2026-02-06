@@ -71,9 +71,18 @@ const testimonials = [
 ];
 
 const serviceTowns = [
-  "Charlotte", "Huntersville", "Concord", "Matthews", "Mint Hill",
-  "Fort Mill", "Belmont", "Waxhaw", "Indian Trail", "Monroe",
-  "Lake Norman", "Mooresville",
+  { name: "Charlotte", slug: "charlotte" },
+  { name: "Huntersville", slug: "huntersville" },
+  { name: "Concord", slug: "concord" },
+  { name: "Matthews", slug: "matthews" },
+  { name: "Mint Hill", slug: "mint-hill" },
+  { name: "Fort Mill", slug: "fort-mill" },
+  { name: "Belmont", slug: "belmont" },
+  { name: "Waxhaw", slug: "waxhaw" },
+  { name: "Indian Trail", slug: "indian-trail" },
+  { name: "Monroe", slug: "monroe" },
+  { name: "Lake Norman", slug: "lake-norman" },
+  { name: "Mooresville", slug: "mooresville" },
 ];
 
 export default function Home() {
@@ -334,10 +343,12 @@ export default function Home() {
           />
           <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto" data-testid="text-service-area">
             {serviceTowns.map((town) => (
-              <Badge key={town} variant="outline" className="px-4 py-2 text-sm no-default-active-elevate">
-                <MapPin className="h-3 w-3 mr-1.5 text-primary" />
-                {town}
-              </Badge>
+              <Link key={town.slug} href={`/areas/${town.slug}`} data-testid={`link-area-${town.slug}`}>
+                <Badge variant="outline" className="px-4 py-2 text-sm cursor-pointer">
+                  <MapPin className="h-3 w-3 mr-1.5" />
+                  {town.name}
+                </Badge>
+              </Link>
             ))}
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6 max-w-xl mx-auto">

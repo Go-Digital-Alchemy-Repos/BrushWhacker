@@ -863,6 +863,18 @@ export async function registerRoutes(
         { loc: "/pricing", priority: "0.7", changefreq: "monthly" },
         { loc: "/quote", priority: "0.8", changefreq: "monthly" },
         { loc: "/blog", priority: "0.7", changefreq: "daily" },
+        { loc: "/areas/charlotte", priority: "0.7", changefreq: "monthly" },
+        { loc: "/areas/huntersville", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/concord", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/matthews", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/mint-hill", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/fort-mill", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/belmont", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/waxhaw", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/indian-trail", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/monroe", priority: "0.6", changefreq: "monthly" },
+        { loc: "/areas/lake-norman", priority: "0.7", changefreq: "monthly" },
+        { loc: "/areas/mooresville", priority: "0.6", changefreq: "monthly" },
       ];
 
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
