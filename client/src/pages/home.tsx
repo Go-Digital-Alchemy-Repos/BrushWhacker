@@ -38,7 +38,7 @@ export default function Home() {
           style={{ backgroundImage: `url(${STOCK_IMAGES.hero})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40 text-[18px]">
           <div className="max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-md text-sm text-primary-foreground">
               <TreePine className="h-4 w-4" />
@@ -65,7 +65,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <section className="bg-primary text-primary-foreground" data-testid="stats-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -80,7 +79,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <section className="py-16 sm:py-20" data-testid="services-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -116,7 +114,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <section className="py-16 sm:py-20 bg-card" data-testid="benefits-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -151,7 +148,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <section className="py-16 sm:py-20" data-testid="process-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How It Works</h2>
@@ -175,7 +171,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <section className="relative overflow-hidden" data-testid="cta-section">
         <div
           className="absolute inset-0 bg-cover bg-center"
