@@ -138,7 +138,7 @@ export default function AdminDocs() {
   const [search, setSearch] = useState("");
 
   const toggleCategory = (cat: string) => {
-    setExpandedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
+    setExpandedCategories((prev) => ({ ...prev, [cat]: !(prev[cat] ?? true) }));
   };
 
   const { data: docs, isLoading, error } = useQuery<DocsResponse>({

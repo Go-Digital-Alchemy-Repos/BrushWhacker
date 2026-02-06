@@ -6,6 +6,7 @@ import { z } from "zod";
 import passport from "passport";
 import { requireAdmin } from "./auth";
 import { registerCmsRoutes } from "./cms-routes";
+import { getDocsEntries } from "./docs-data";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000;
@@ -474,7 +475,6 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/docs", requireAdmin, (_req, res) => {
-    const { getDocsEntries } = require("./docs-data");
     const entries = getDocsEntries();
     const categories = [...new Set(entries.map((e: any) => e.category))];
     res.json({ categories, entries });
