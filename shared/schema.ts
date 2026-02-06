@@ -351,6 +351,26 @@ export const insertCmsRedirectSchema = z.object({
 
 export type InsertCmsRedirect = z.infer<typeof insertCmsRedirectSchema>;
 
+export const cmsPageRevisions = pgTable("cms_page_revisions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  pageId: uuid("page_id").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: text("created_by"),
+  message: text("message"),
+  snapshot: jsonb("snapshot").notNull(),
+});
+
+export type CmsPageRevision = typeof cmsPageRevisions.$inferSelect;
+
+export const insertCmsPageRevisionSchema = z.object({
+  pageId: z.string().uuid(),
+  createdBy: z.string().optional(),
+  message: z.string().optional(),
+  snapshot: z.record(z.any()),
+});
+
+export type InsertCmsPageRevision = z.infer<typeof insertCmsPageRevisionSchema>;
+
 export interface BlockInstance {
   id: string;
   type: string;
