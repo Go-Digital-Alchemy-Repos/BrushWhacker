@@ -120,8 +120,32 @@ export function registerCmsRoutes(app: Express) {
           return res.status(409).json({ error: "A page with this slug already exists" });
         }
       }
+
+      const currentPage = await storage.getCmsPage(req.params.id);
+      if (!currentPage) return res.status(404).json({ error: "Page not found" });
+
+      const isPublishing = parsed.data.status === "published" && currentPage.status !== "published";
+      if (isPublishing) {
+        const snapshot = {
+          title: currentPage.title,
+          slug: currentPage.slug,
+          description: currentPage.description,
+          status: currentPage.status,
+          pageType: currentPage.pageType,
+          templateId: currentPage.templateId,
+          blocks: currentPage.blocks,
+          seo: currentPage.seo,
+        };
+        await storage.createPageRevision({
+          pageId: currentPage.id,
+          createdBy: "admin",
+          message: "Auto-saved before publish",
+          snapshot,
+        });
+        await storage.prunePageRevisions(currentPage.id, 50);
+      }
+
       const updated = await storage.updateCmsPage(req.params.id, parsed.data);
-      if (!updated) return res.status(404).json({ error: "Page not found" });
       return res.json(updated);
     } catch (err) {
       console.error("Failed to update CMS page:", err);
@@ -378,6 +402,79 @@ export function registerCmsRoutes(app: Express) {
     } catch (err) {
       console.error("Failed to delete redirect:", err);
       return res.status(500).json({ error: "Failed to delete redirect" });
+    }
+  });
+
+  app.get("/api/admin/cms/pages/:id/revisions", requireAdmin, async (req, res) => {
+    try {
+      const page = await storage.getCmsPage(req.params.id);
+      if (!page) return res.status(404).json({ error: "Page not found" });
+      const revisions = await storage.getPageRevisions(req.params.id);
+      return res.json(revisions);
+    } catch (err) {
+      console.error("Failed to fetch revisions:", err);
+      return res.status(500).json({ error: "Failed to fetch revisions" });
+    }
+  });
+
+  app.post("/api/admin/cms/pages/:id/revisions", requireAdmin, async (req, res) => {
+    try {
+      const page = await storage.getCmsPage(req.params.id);
+      if (!page) return res.status(404).json({ error: "Page not found" });
+
+      const snapshot = {
+        title: page.title,
+        slug: page.slug,
+        description: page.description,
+        status: page.status,
+        pageType: page.pageType,
+        templateId: page.templateId,
+        blocks: page.blocks,
+        seo: page.seo,
+      };
+
+      const revision = await storage.createPageRevision({
+        pageId: page.id,
+        createdBy: (req.body.createdBy as string) || "admin",
+        message: (req.body.message as string) || undefined,
+        snapshot,
+      });
+
+      await storage.prunePageRevisions(page.id, 50);
+
+      return res.status(201).json(revision);
+    } catch (err) {
+      console.error("Failed to create revision:", err);
+      return res.status(500).json({ error: "Failed to create revision" });
+    }
+  });
+
+  app.post("/api/admin/cms/pages/:id/revisions/:revId/restore", requireAdmin, async (req, res) => {
+    try {
+      const page = await storage.getCmsPage(req.params.id);
+      if (!page) return res.status(404).json({ error: "Page not found" });
+
+      const revision = await storage.getPageRevision(req.params.revId);
+      if (!revision || revision.pageId !== req.params.id) {
+        return res.status(404).json({ error: "Revision not found" });
+      }
+
+      const snap = revision.snapshot as Record<string, any>;
+      const updated = await storage.updateCmsPage(req.params.id, {
+        title: snap.title,
+        slug: snap.slug,
+        description: snap.description,
+        status: snap.status,
+        pageType: snap.pageType,
+        templateId: snap.templateId || null,
+        blocks: snap.blocks,
+        seo: snap.seo,
+      });
+
+      return res.json(updated);
+    } catch (err) {
+      console.error("Failed to restore revision:", err);
+      return res.status(500).json({ error: "Failed to restore revision" });
     }
   });
 
