@@ -101,9 +101,11 @@ export default function ServiceDetail() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4" data-testid="text-service-overview-heading">
             Service Overview
           </h2>
-          <p className="text-muted-foreground leading-relaxed text-base sm:text-lg" data-testid="text-service-overview">
-            {service.overview}
-          </p>
+          <div className="space-y-4 text-muted-foreground leading-relaxed text-base sm:text-lg" data-testid="text-service-overview">
+            {service.overview.split("\n\n").map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
         </div>
       </section>
 
