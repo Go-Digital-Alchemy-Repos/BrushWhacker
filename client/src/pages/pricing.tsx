@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { STOCK_IMAGES } from "@/lib/stock-images";
-import { CheckCircle2, ArrowRight, HelpCircle, Clock, Zap, Star, Layers } from "lucide-react";
+import { CheckCircle2, ArrowRight, HelpCircle, Clock, Zap, Star, Layers, Phone } from "lucide-react";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
 const tiers = [
@@ -72,12 +72,12 @@ const tiers = [
 ];
 
 const affectsPrice = [
-  "Vegetation density and stem size",
-  "Terrain slope and ground conditions",
-  "Access width (gates, driveways)",
-  "Obstacles (fencing, rocks, debris, hidden stumps)",
-  "Haul-off vs mulch-on-site",
-  "Utility locate requirements",
+  { text: "Vegetation density and stem size", detail: "Thicker growth takes more time" },
+  { text: "Terrain slope and ground conditions", detail: "Steep or wet ground requires specialized equipment" },
+  { text: "Access width (gates, driveways)", detail: "Narrow access may limit equipment options" },
+  { text: "Obstacles (fencing, rocks, debris)", detail: "Hidden obstacles slow the process" },
+  { text: "Haul-off vs mulch-on-site", detail: "Hauling adds cost; mulching in place saves" },
+  { text: "Utility locate requirements", detail: "Underground utilities need marking first" },
 ];
 
 const faqs = [
@@ -122,18 +122,22 @@ export default function Pricing() {
     <SiteLayout>
       <section className="relative overflow-hidden" data-testid="pricing-hero-section">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center scale-105"
           style={{ backgroundImage: `url(${STOCK_IMAGES.aerialClearing})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/50" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
+          <Badge variant="secondary" className="mb-4 no-default-active-elevate bg-white/10 text-white border-white/20">Transparent Rates</Badge>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-pricing-title">
-            Simple, Straightforward Pricing
+            Simple, Straightforward
+            <br />
+            <span className="text-primary">Pricing</span>
           </h1>
-          <p className="mt-4 text-gray-300 max-w-2xl mx-auto text-lg">
-            Final pricing depends on access, vegetation density, terrain, and disposal needs. Your quote confirms exact pricing for your specific property. Serving Charlotte, Mecklenburg County, and surrounding areas.
+          <p className="mt-4 text-gray-200 max-w-2xl mx-auto text-lg">
+            Your quote confirms exact pricing for your specific property. No surprises.
           </p>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
       <section className="py-16 sm:py-20">
@@ -145,21 +149,23 @@ export default function Pricing() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {tiers.map((tier) => (
               <Card
                 key={tier.name}
-                className={`relative ${tier.popular ? "border-primary" : ""}`}
+                className={`relative ${tier.popular ? "border-primary ring-1 ring-primary/20" : ""}`}
                 data-testid={`card-pricing-${tier.name.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 {tier.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-md">
-                    Most Popular
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="no-default-active-elevate">Most Popular</Badge>
                   </div>
                 )}
                 <CardContent className="p-6 flex flex-col h-full">
                   <div className="flex items-center gap-2 mb-2">
-                    <tier.icon className="h-5 w-5 text-primary" />
+                    <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: tier.popular ? "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))" : "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                      <tier.icon className={`h-4 w-4 ${tier.popular ? "text-primary-foreground" : "text-primary"}`} />
+                    </div>
                     <h3 className="text-lg font-bold">{tier.name}</h3>
                   </div>
                   <p className="text-sm text-muted-foreground">{tier.desc}</p>
@@ -169,7 +175,7 @@ export default function Pricing() {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{tier.subPrice}</p>
                   <div className="mt-3 mb-4">
-                    <Badge variant="secondary" className="text-xs">Best for: {tier.bestFor}</Badge>
+                    <Badge variant="secondary" className="text-xs no-default-active-elevate">Best for: {tier.bestFor}</Badge>
                   </div>
                   <ul className="space-y-2.5 flex-1">
                     {tier.features.map((f) => (
@@ -195,23 +201,30 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-card">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Price Factors</Badge>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">What Affects Price</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
               Every property is different. Here are the main factors that influence your final quote.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-4">
             {affectsPrice.map((item) => (
-              <div key={item} className="flex items-center gap-3 p-3">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span className="text-sm">{item}</span>
-              </div>
+              <Card key={item.text} className="hover-elevate">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-sm font-medium">{item.text}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.detail}</p>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-10">
             <Link href="/quote">
               <Button className="gap-2" data-testid="pricing-affects-cta">
                 Get Your Custom Quote <ArrowRight className="h-4 w-4" />
@@ -221,9 +234,10 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section className="py-16 sm:py-20 section-divider pt-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">FAQ</Badge>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
               <HelpCircle className="h-6 w-6 text-primary" />
               Common Questions
@@ -231,7 +245,7 @@ export default function Pricing() {
           </div>
           <div className="space-y-4">
             {faqs.map((faq, i) => (
-              <Card key={i} data-testid={`card-faq-${i}`}>
+              <Card key={i} className="hover-elevate" data-testid={`card-faq-${i}`}>
                 <CardContent className="p-5">
                   <h3 className="font-semibold">{faq.q}</h3>
                   <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{faq.a}</p>
@@ -243,17 +257,29 @@ export default function Pricing() {
       </section>
 
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold">Ready to Get Started?</h2>
-          <p className="mt-3 text-white/80 max-w-xl mx-auto">
-            Tell us about your project and we'll provide a fast, accurate quote. We serve Charlotte, Huntersville, Matthews, Concord, Fort Mill, Lake Norman, and the surrounding region.
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${STOCK_IMAGES.forest})` }}
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.65) 100%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Ready to Get Started?</h2>
+          <p className="mt-3 text-white/80 max-w-xl mx-auto text-lg">
+            Tell us about your project and we'll provide a fast, accurate quote.
           </p>
-          <Link href="/quote">
-            <Button size="lg" variant="secondary" className="mt-6 gap-2" data-testid="pricing-final-cta">
-              Get a Fast Quote <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            <Link href="/quote">
+              <Button size="lg" className="gap-2 text-base" data-testid="pricing-final-cta">
+                Get a Fast Quote <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <a href="tel:+17046085783">
+              <Button size="lg" variant="outline" className="gap-2 text-base bg-white/10 backdrop-blur-sm text-white border-white/25">
+                <Phone className="h-4 w-4" />
+                (704) 608-5783
+              </Button>
+            </a>
+          </div>
         </div>
       </section>
     </SiteLayout>

@@ -9,7 +9,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import {
   TreePine, Axe, Mountain, Trees,
   Shield, Clock, Star, ArrowRight, Phone, CheckCircle2,
-  MapPin, Leaf, Zap, Users, Eye, HardHat, Fence, Bug
+  MapPin, Leaf, Zap, Users, Eye, HardHat, Fence, Bug, Quote
 } from "lucide-react";
 
 const SERVICE_ICONS: Record<string, typeof Mountain> = {
@@ -22,19 +22,19 @@ const SERVICE_ICONS: Record<string, typeof Mountain> = {
 };
 
 const stats = [
-  { value: "500+", label: "Acres Cleared" },
-  { value: "10+", label: "Years Experience" },
-  { value: "100%", label: "Insured & Licensed" },
-  { value: "4.9", label: "Average Rating" },
+  { value: "500+", label: "Acres Cleared", icon: TreePine },
+  { value: "10+", label: "Years Experience", icon: Clock },
+  { value: "100%", label: "Insured & Licensed", icon: Shield },
+  { value: "4.9", label: "Average Rating", icon: Star },
 ];
 
 const whatWeClear = [
-  { icon: TreePine, title: "Dense brush & undergrowth" },
-  { icon: Axe, title: "Overgrown fields & pastures" },
-  { icon: Mountain, title: "Steep slopes & hillsides" },
-  { icon: Fence, title: "Fence lines & property edges" },
-  { icon: Leaf, title: "Trails & access lanes" },
-  { icon: Bug, title: "Invasive vines & growth" },
+  { icon: TreePine, title: "Dense brush & undergrowth", desc: "Thick vegetation mulched in a single pass" },
+  { icon: Axe, title: "Overgrown fields & pastures", desc: "Heavy-duty rotary mowing for open land" },
+  { icon: Mountain, title: "Steep slopes & hillsides", desc: "Specialized equipment for tough terrain" },
+  { icon: Fence, title: "Fence lines & property edges", desc: "Clean boundary clearing and prep" },
+  { icon: Leaf, title: "Trails & access lanes", desc: "Custom-width paths through dense brush" },
+  { icon: Bug, title: "Invasive vines & growth", desc: "Cut-and-treat for lasting results" },
 ];
 
 const processSteps = [
@@ -54,16 +54,25 @@ const whyBrushWhackers = [
 const testimonials = [
   {
     text: "They mulched about three acres of heavy brush behind our house in less than two days. You'd never know it was overgrown. Clean, professional, and easy to work with.",
-    name: "Mark T. — Huntersville",
+    name: "Mark T.",
+    location: "Huntersville",
   },
   {
     text: "We called BrushWhackers to clear fence lines on our horse property. They did exactly what they said they'd do, showed up on time, and the price was fair. Already booked them for a second project.",
-    name: "Laura S. — Waxhaw",
+    name: "Laura S.",
+    location: "Waxhaw",
   },
   {
     text: "Our lot was full of invasive kudzu and privet. These guys cleared every bit of it and left a nice mulch layer behind. Huge difference. Highly recommend.",
-    name: "James R. — Matthews",
+    name: "James R.",
+    location: "Matthews",
   },
+];
+
+const serviceTowns = [
+  "Charlotte", "Huntersville", "Concord", "Matthews", "Mint Hill",
+  "Fort Mill", "Belmont", "Waxhaw", "Indian Trail", "Monroe",
+  "Lake Norman", "Mooresville",
 ];
 
 export default function Home() {
@@ -101,71 +110,81 @@ export default function Home() {
     <SiteLayout>
       <section className="relative overflow-hidden" data-testid="hero-section">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center scale-105"
           style={{ backgroundImage: `url(${STOCK_IMAGES.hero})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
-          <div className="max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 border border-primary/30 rounded-md text-sm text-primary-foreground">
-              <TreePine className="h-4 w-4" />
-              <span>Serving Charlotte, NC & Surrounding Areas</span>
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 sm:py-36 lg:py-44">
+          <div className="max-w-2xl space-y-6 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white" style={{ background: "linear-gradient(135deg, hsl(28 65% 42% / 0.6), hsl(85 35% 38% / 0.5))" }}>
+              <MapPin className="h-4 w-4" />
+              <span>Serving Charlotte, NC & 50-Mile Radius</span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight" data-testid="hero-heading">
-              Forestry Mulching & Land Clearing — Charlotte, NC
+              Clear Your Land.
+              <br />
+              <span className="text-primary">Keep Your Soil.</span>
             </h1>
-            <p className="text-lg text-gray-300 leading-relaxed max-w-xl" data-testid="hero-subtext">
-              We grind brush, saplings, and overgrowth into mulch in a single pass — no hauling, no burn piles, no mess. Just clean land, ready for whatever comes next.
+            <p className="text-lg sm:text-xl text-gray-200 leading-relaxed max-w-xl" data-testid="hero-subtext">
+              We grind brush, saplings, and overgrowth into mulch in a single pass — no hauling, no burn piles, no mess.
             </p>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link href="/quote">
-                <Button size="lg" className="gap-2" data-testid="hero-cta-quote">
+                <Button size="lg" className="gap-2 text-base" data-testid="hero-cta-quote">
                   Get a Free Quote
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/services">
-                <Button size="lg" variant="outline" className="gap-2 bg-white/10 backdrop-blur-sm text-white border-white/20" data-testid="hero-cta-services">
-                  View Services
-                  <ArrowRight className="h-4 w-4" />
+              <a href="tel:+17046085783">
+                <Button size="lg" variant="outline" className="gap-2 text-base bg-white/10 backdrop-blur-sm text-white border-white/25" data-testid="hero-cta-call">
+                  <Phone className="h-4 w-4" />
+                  (704) 608-5783
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-24" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
-      <section className="bg-primary text-primary-foreground" data-testid="stats-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <div className="text-2xl sm:text-3xl font-bold" data-testid={`stat-value-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
-                  {stat.value}
-                </div>
-                <div className="text-sm text-primary-foreground/80 mt-1">{stat.label}</div>
+      <section className="relative -mt-8 z-10 pb-8" data-testid="stats-section">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="overflow-visible">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="p-6 text-center">
+                    <stat.icon className="h-5 w-5 text-primary mx-auto mb-2" />
+                    <div className="text-2xl sm:text-3xl font-bold text-primary" data-testid={`stat-value-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}>
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 font-medium uppercase tracking-wider">{stat.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" data-testid="what-we-clear-section">
+      <section className="py-16 sm:py-20 section-divider pt-20" data-testid="what-we-clear-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">What We Do</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What We Clear</h2>
             <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
               From tangled undergrowth to wide-open fields, we have the equipment and know-how to handle it all.
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {whatWeClear.map((item) => (
-              <Card key={item.title} className="hover-elevate" data-testid={`card-clear-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
-                <CardContent className="p-6 flex flex-col items-center text-center gap-3">
-                  <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
-                    <item.icon className="h-5 w-5 text-primary" />
+              <Card key={item.title} className="hover-elevate group" data-testid={`card-clear-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                <CardContent className="p-6 flex flex-col gap-3">
+                  <div className="h-12 w-12 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <item.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold">{item.title}</h3>
+                  <h3 className="font-semibold text-sm sm:text-base">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -173,27 +192,40 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-card" data-testid="services-section">
+      <section className="py-16 sm:py-20" data-testid="services-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Our Expertise</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Services</h2>
             <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
               Whether it's a half-acre residential lot or 50 acres of rural land, we bring the right equipment and get it done.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {SERVICES.map((service) => {
               const IconComp = SERVICE_ICONS[service.slug] || TreePine;
               return (
                 <Link key={service.slug} href={`/services/${service.slug}`}>
-                  <Card className="h-full hover-elevate transition-all cursor-pointer group" data-testid={`card-service-${service.slug}`}>
-                    <CardContent className="p-6 flex flex-col gap-3">
-                      <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
-                        <IconComp className="h-5 w-5 text-primary" />
+                  <Card className="h-full hover-elevate cursor-pointer" data-testid={`card-service-${service.slug}`}>
+                    <div className="aspect-[16/9] overflow-hidden relative">
+                      <img
+                        src={service.image}
+                        alt={service.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)" }} />
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-md bg-primary/90 flex items-center justify-center">
+                            <IconComp className="h-4 w-4 text-primary-foreground" />
+                          </div>
+                          <h3 className="font-bold text-white text-base">{service.title}</h3>
+                        </div>
                       </div>
-                      <h3 className="font-semibold text-lg">{service.title}</h3>
+                    </div>
+                    <CardContent className="p-4 space-y-3">
                       <p className="text-sm text-muted-foreground leading-relaxed">{service.shortDesc}</p>
-                      <span className="text-sm text-primary font-medium flex items-center gap-1 mt-auto">
+                      <span className="text-sm text-primary font-medium flex items-center gap-1">
                         Learn more <ArrowRight className="h-3.5 w-3.5" />
                       </span>
                     </CardContent>
@@ -202,7 +234,7 @@ export default function Home() {
               );
             })}
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-10">
             <Link href="/services">
               <Button variant="outline" className="gap-2" data-testid="link-all-services">
                 View All Services <ArrowRight className="h-4 w-4" />
@@ -212,96 +244,133 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" data-testid="process-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-16 sm:py-24 relative overflow-hidden" data-testid="process-section">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" className="mb-4 no-default-active-elevate">Simple Process</Badge>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How It Works</h2>
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
             Three simple steps from overgrown to cleared and clean.
           </p>
-          <div className="grid sm:grid-cols-3 gap-6 mt-10">
+          <div className="grid sm:grid-cols-3 gap-8 mt-14 relative">
+            <div className="hidden sm:block absolute top-6 left-[20%] right-[20%] h-px border-t-2 border-dashed border-primary/20" />
             {processSteps.map((item) => (
-              <div key={item.step} className="text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto text-lg font-bold" data-testid={`process-step-${item.step}`}>
+              <div key={item.step} className="relative text-center space-y-4">
+                <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto text-lg font-bold relative z-10 ring-4 ring-background" data-testid={`process-step-${item.step}`}>
                   {item.step}
                 </div>
-                <h3 className="font-semibold text-lg">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
+                <h3 className="font-bold text-lg">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-card" data-testid="why-section">
+      <section className="py-16 sm:py-20" data-testid="why-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
+              <Badge variant="secondary" className="mb-4 no-default-active-elevate">Why Choose Us</Badge>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
                 Why BrushWhackers
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
                 We're not a general contractor who happens to own a mulcher. Forestry mulching and land clearing is all we do — and we've spent years building the equipment lineup, crew, and processes to do it better than anyone in the Charlotte area.
               </p>
-              <div className="mt-8 space-y-5">
+              <div className="mt-8 space-y-4">
                 {whyBrushWhackers.map((b) => (
                   <div key={b.text} className="flex gap-4 items-start">
-                    <div className="h-10 w-10 shrink-0 rounded-md bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 shrink-0 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
                       <b.icon className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex items-center min-h-[2.5rem]">
-                      <p className="font-medium" data-testid={`why-bullet-${b.text.slice(0, 20).toLowerCase().replace(/\s+/g, "-")}`}>{b.text}</p>
+                      <p className="font-medium text-sm sm:text-base" data-testid={`why-bullet-${b.text.slice(0, 20).toLowerCase().replace(/\s+/g, "-")}`}>{b.text}</p>
                     </div>
                   </div>
                 ))}
               </div>
+              <div className="mt-8">
+                <Link href="/quote">
+                  <Button className="gap-2" data-testid="why-cta-quote">
+                    Get a Free Quote <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="relative rounded-md overflow-hidden aspect-[4/3]">
-              <img
-                src={STOCK_IMAGES.heavyEquipment}
-                alt="Heavy equipment clearing land"
-                className="w-full h-full object-cover"
-              />
+            <div className="relative">
+              <div className="rounded-md overflow-hidden aspect-[4/3] relative">
+                <img
+                  src={STOCK_IMAGES.heavyEquipment}
+                  alt="Heavy equipment clearing land"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground rounded-md p-4 hidden lg:flex items-center gap-3">
+                <Shield className="h-8 w-8" />
+                <div>
+                  <div className="font-bold text-lg">100%</div>
+                  <div className="text-xs text-primary-foreground/80">Insured & Licensed</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 sm:py-20" data-testid="service-area-section">
+      <section className="py-16 sm:py-20 section-divider pt-20" data-testid="service-area-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Coverage Area</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Service Area</h2>
-          </div>
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <MapPin className="h-5 w-5 text-primary" />
-              <Badge variant="secondary" className="no-default-active-elevate">Charlotte Metro Region</Badge>
-            </div>
-            <p className="text-muted-foreground leading-relaxed" data-testid="text-service-area">
-              BrushWhackers proudly serves Charlotte, Lake Norman, Huntersville, Concord, Matthews, Mint Hill, Fort Mill, Belmont, Waxhaw, Indian Trail, Monroe, and surrounding areas within about an hour of the Charlotte metro. Whether your property is in a residential neighborhood or on rural acreage, we bring our equipment and crew to get the job done.
+            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
+              We proudly serve properties within about an hour of the Charlotte metro.
             </p>
           </div>
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto" data-testid="text-service-area">
+            {serviceTowns.map((town) => (
+              <Badge key={town} variant="outline" className="px-4 py-2 text-sm no-default-active-elevate">
+                <MapPin className="h-3 w-3 mr-1.5 text-primary" />
+                {town}
+              </Badge>
+            ))}
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-6 max-w-xl mx-auto">
+            Don't see your town? If you're within about an hour of Charlotte, we can likely serve you.
+            <Link href="/quote" className="text-primary font-medium ml-1">Contact us to check.</Link>
+          </p>
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 bg-card" data-testid="testimonials-section">
+      <section className="py-16 sm:py-20" data-testid="testimonials-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Real Reviews</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What Our Customers Say</h2>
             <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
               Real feedback from property owners across the Charlotte region.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {testimonials.map((t, i) => (
               <Card key={i} className="h-full" data-testid={`card-testimonial-${i}`}>
-                <CardContent className="p-6 flex flex-col gap-4">
+                <CardContent className="p-6 flex flex-col gap-4 relative">
+                  <Quote className="h-8 w-8 text-primary/15 absolute top-4 right-4" />
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star key={s} className="h-4 w-4 fill-primary text-primary" />
                     ))}
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">{t.text}</p>
-                  <p className="text-sm font-medium">{t.name}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1 italic">"{t.text}"</p>
+                  <div className="flex items-center gap-3 pt-2 border-t">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-bold text-primary">{t.name[0]}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.location}</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -314,19 +383,25 @@ export default function Home() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${STOCK_IMAGES.forest})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center text-white">
-          <h2 className="text-3xl sm:text-4xl font-bold">Ready to reclaim your land?</h2>
-          <p className="mt-3 text-white/80 max-w-xl mx-auto">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.45) 100%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center text-white">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">Ready to reclaim your land?</h2>
+          <p className="mt-4 text-white/80 max-w-xl mx-auto text-lg">
             Get a free, no-obligation quote today. Tell us about your property and we'll handle the rest.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <div className="flex flex-wrap justify-center gap-3 mt-10">
             <Link href="/quote">
-              <Button size="lg" variant="secondary" className="gap-2" data-testid="cta-get-quote">
+              <Button size="lg" className="gap-2 text-base" data-testid="cta-get-quote">
                 <CheckCircle2 className="h-4 w-4" />
                 Get a Free Quote
               </Button>
             </Link>
+            <a href="tel:+17046085783">
+              <Button size="lg" variant="outline" className="gap-2 text-base bg-white/10 backdrop-blur-sm text-white border-white/25" data-testid="cta-call">
+                <Phone className="h-4 w-4" />
+                Call (704) 608-5783
+              </Button>
+            </a>
           </div>
         </div>
       </section>

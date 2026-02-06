@@ -1,9 +1,10 @@
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { getServiceBySlug, SERVICES } from "@/lib/services-data";
-import { ArrowRight, CheckCircle2, ArrowLeft, Target, Wrench, MapPin, DollarSign, HelpCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, ArrowLeft, Target, Wrench, MapPin, DollarSign, HelpCircle, Phone } from "lucide-react";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function ServiceDetail() {
@@ -65,28 +66,38 @@ export default function ServiceDetail() {
     <SiteLayout>
       <section className="relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-center scale-105"
           style={{ backgroundImage: `url(${service.image})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/50" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <Link href="/services" className="inline-flex items-center gap-1 text-sm text-gray-300 hover:text-white transition-colors mb-4">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+          <Link href="/services" className="inline-flex items-center gap-1.5 text-sm text-gray-300 underline-offset-4 hover:underline mb-6">
             <ArrowLeft className="h-3.5 w-3.5" /> All Services
           </Link>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-service-title">
             {service.h1}
           </h1>
-          <p className="mt-4 text-gray-300 max-w-2xl text-lg">{service.intro}</p>
-          <Link href="/quote">
-            <Button size="lg" className="mt-6 gap-2" data-testid="service-hero-cta-quote">
-              Get a Free Quote <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          <p className="mt-4 text-gray-200 max-w-2xl text-lg sm:text-xl">{service.intro}</p>
+          <div className="flex flex-wrap items-center gap-3 mt-8">
+            <Link href="/quote">
+              <Button size="lg" className="gap-2 text-base" data-testid="service-hero-cta-quote">
+                Get a Free Quote <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <a href="tel:+17046085783">
+              <Button size="lg" variant="outline" className="gap-2 bg-white/10 backdrop-blur-sm text-white border-white/25">
+                <Phone className="h-4 w-4" />
+                (704) 608-5783
+              </Button>
+            </a>
+          </div>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Badge variant="secondary" className="mb-4 no-default-active-elevate">Overview</Badge>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4" data-testid="text-service-overview-heading">
             Service Overview
           </h2>
@@ -98,11 +109,13 @@ export default function ServiceDetail() {
 
       <section className="pb-12 sm:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Target className="h-5 w-5 text-primary" />
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <Target className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="text-lg font-semibold">Best For</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-best-for">
@@ -119,7 +132,9 @@ export default function ServiceDetail() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Wrench className="h-5 w-5 text-primary" />
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <Wrench className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="text-lg font-semibold">What's Included</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-whats-included">
@@ -136,7 +151,9 @@ export default function ServiceDetail() {
             <Card className="sm:col-span-2 lg:col-span-1">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="h-5 w-5 text-primary" />
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="text-lg font-semibold">Typical Projects</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-typical-projects">
@@ -159,7 +176,9 @@ export default function ServiceDetail() {
             <div className="lg:col-span-2 space-y-10">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <DollarSign className="h-5 w-5 text-primary" />
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <DollarSign className="h-4 w-4 text-primary" />
+                  </div>
                   <h2 className="text-xl font-semibold">Pricing Factors</h2>
                 </div>
                 <p className="text-muted-foreground leading-relaxed" data-testid="text-pricing-factors">
@@ -182,12 +201,14 @@ export default function ServiceDetail() {
 
               <div>
                 <div className="flex items-center gap-2 mb-6">
-                  <HelpCircle className="h-5 w-5 text-primary" />
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
+                    <HelpCircle className="h-4 w-4 text-primary" />
+                  </div>
                   <h2 className="text-xl font-semibold">Frequently Asked Questions</h2>
                 </div>
                 <div className="space-y-4" data-testid="section-faqs">
                   {service.faqs.map((faq, i) => (
-                    <Card key={i}>
+                    <Card key={i} className="hover-elevate">
                       <CardContent className="p-5">
                         <h3 className="font-semibold">{faq.q}</h3>
                         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{faq.a}</p>
@@ -216,8 +237,9 @@ export default function ServiceDetail() {
                 </Link>
               ))}
 
-              <Card className="mt-6">
-                <CardContent className="p-5 text-center space-y-3">
+              <Card className="mt-6 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "16px 16px" }} />
+                <CardContent className="p-5 text-center space-y-3 relative">
                   <h3 className="font-semibold">Need This Service?</h3>
                   <p className="text-sm text-muted-foreground">Get a fast, no-obligation quote for your property in the Charlotte area.</p>
                   <Link href="/quote">

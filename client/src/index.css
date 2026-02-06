@@ -173,6 +173,45 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  .section-divider {
+    position: relative;
+  }
+  .section-divider::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    border-radius: 2px;
+    background: hsl(var(--primary));
+    opacity: 0.6;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s ease-out both;
+  }
+
+  .animate-fade-up-delay-1 { animation-delay: 0.1s; }
+  .animate-fade-up-delay-2 { animation-delay: 0.2s; }
+  .animate-fade-up-delay-3 { animation-delay: 0.3s; }
 }
 
 /**
