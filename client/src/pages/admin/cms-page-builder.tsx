@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -34,6 +34,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { BlockInstance, CmsPage, CmsBlock, CmsMediaItem } from "@shared/schema";
 
 function slugify(text: string): string {
@@ -352,7 +356,61 @@ export default function CmsPageBuilder() {
   );
 
   const hasUnsavedChanges = lastSavedSnapshot !== "" && currentSnapshot !== lastSavedSnapshot;
+  const isNewWithContent = isNew && lastSavedSnapshot === "" && (title.trim() !== "" || blocks.length > 0);
+  const shouldWarnOnLeave = hasUnsavedChanges || isNewWithContent;
   const isSaved = lastSavedSnapshot !== "" && currentSnapshot === lastSavedSnapshot;
+
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const pendingNavigationRef = useRef<string | null>(null);
+
+  const shouldWarnRef = useRef(shouldWarnOnLeave);
+  shouldWarnRef.current = shouldWarnOnLeave;
+
+  useEffect(() => {
+    if (!shouldWarnOnLeave) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [shouldWarnOnLeave]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (shouldWarnRef.current) {
+        const confirmed = window.confirm("You have unsaved changes. Leave without saving?");
+        if (!confirmed) {
+          window.history.pushState(null, "", window.location.href);
+        }
+      }
+    };
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const safeNavigate = useCallback((path: string) => {
+    if (shouldWarnOnLeave) {
+      pendingNavigationRef.current = path;
+      setShowLeaveDialog(true);
+    } else {
+      navigate(path);
+    }
+  }, [shouldWarnOnLeave, navigate]);
+
+  const confirmLeave = useCallback(() => {
+    setShowLeaveDialog(false);
+    if (pendingNavigationRef.current) {
+      navigate(pendingNavigationRef.current);
+      pendingNavigationRef.current = null;
+    }
+  }, [navigate]);
+
+  const cancelLeave = useCallback(() => {
+    setShowLeaveDialog(false);
+    pendingNavigationRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (existingPage && editId && lastSavedSnapshot === "") {
@@ -748,7 +806,7 @@ export default function CmsPageBuilder() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/admin/cms/pages")}
+            onClick={() => safeNavigate("/admin/cms/pages")}
             data-testid="button-back-to-pages"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -794,19 +852,19 @@ export default function CmsPageBuilder() {
           </div>
 
           <div className="flex items-center gap-2">
-            {editId && (
-              <span className="text-xs px-2" data-testid="text-save-status">
-                {saveMutation.isPending ? (
-                  <span className="text-muted-foreground">Saving...</span>
-                ) : hasUnsavedChanges ? (
-                  <span className="text-amber-600 dark:text-amber-400 font-medium">Unsaved changes</span>
-                ) : isSaved ? (
-                  <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Saved
-                  </span>
-                ) : null}
-              </span>
-            )}
+            <span className="text-xs px-2" data-testid="text-save-status">
+              {saveMutation.isPending ? (
+                <span className="text-muted-foreground">Saving...</span>
+              ) : hasUnsavedChanges || isNewWithContent ? (
+                <span className="text-amber-600 dark:text-amber-400 font-medium flex flex-wrap items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Unsaved changes
+                </span>
+              ) : isSaved ? (
+                <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Saved
+                </span>
+              ) : null}
+            </span>
 
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-[120px]" data-testid="select-page-status">
@@ -1409,6 +1467,25 @@ export default function CmsPageBuilder() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes on this page. If you leave now, your changes will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelLeave} data-testid="button-cancel-leave">
+              Keep Editing
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave} data-testid="button-confirm-leave">
+              Leave Without Saving
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
