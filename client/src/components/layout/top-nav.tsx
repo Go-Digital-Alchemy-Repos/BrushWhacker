@@ -1,0 +1,147 @@
+import { Link, useLocation } from "wouter";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Menu, X, ChevronDown, TreePine } from "lucide-react";
+
+const services = [
+  { label: "Land Clearing", href: "/services/land-clearing" },
+  { label: "Brush Removal", href: "/services/brush-removal" },
+  { label: "Forestry Mulching", href: "/services/forestry-mulching" },
+  { label: "Lot Clearing", href: "/services/lot-clearing" },
+  { label: "Stump Grinding", href: "/services/stump-grinding" },
+  { label: "Driveway & Trail Cutting", href: "/services/driveway-trail-cutting" },
+  { label: "Storm Cleanup", href: "/services/storm-cleanup" },
+];
+
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "Services", href: "/services", hasDropdown: true },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Blog", href: "/blog" },
+];
+
+export function TopNav() {
+  const [location] = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+
+  return (
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b" data-testid="top-nav">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          <Link href="/" className="flex items-center gap-2 shrink-0" data-testid="link-home-logo">
+            <TreePine className="h-8 w-8 text-primary" />
+            <span className="text-xl font-bold tracking-tight">
+              Brush<span className="text-primary">Whackers</span>
+            </span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) =>
+              link.hasDropdown ? (
+                <div
+                  key={link.label}
+                  className="relative"
+                  onMouseEnter={() => setServicesOpen(true)}
+                  onMouseLeave={() => setServicesOpen(false)}
+                >
+                  <Link href={link.href}>
+                    <Button
+                      variant="ghost"
+                      className={`gap-1 ${location.startsWith("/services") ? "bg-accent" : ""}`}
+                      data-testid="link-services"
+                    >
+                      {link.label}
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                  <div
+                    className={`absolute top-full left-0 pt-1 transition-all duration-150 ${servicesOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+                  >
+                    <div className="bg-popover border rounded-md shadow-lg min-w-[220px] py-1">
+                      {services.map((s) => (
+                        <Link
+                          key={s.href}
+                          href={s.href}
+                          className={`block px-4 py-2.5 text-sm hover-elevate transition-colors ${location === s.href ? "text-primary font-medium" : "text-foreground"}`}
+                          data-testid={`link-service-${s.href.split("/").pop()}`}
+                        >
+                          {s.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link key={link.label} href={link.href}>
+                  <Button
+                    variant="ghost"
+                    className={location === link.href ? "bg-accent" : ""}
+                    data-testid={`link-${link.label.toLowerCase()}`}
+                  >
+                    {link.label}
+                  </Button>
+                </Link>
+              )
+            )}
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <Link href="/quote">
+              <Button data-testid="link-get-quote">Get a Quote</Button>
+            </Link>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            data-testid="button-mobile-menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="md:hidden border-t bg-background" data-testid="mobile-menu">
+          <div className="px-4 py-3 space-y-1">
+            {navLinks.map((link) => (
+              <div key={link.label}>
+                <Link
+                  href={link.href}
+                  onClick={() => !link.hasDropdown && setMobileOpen(false)}
+                  className={`block px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${location === link.href ? "bg-accent text-primary" : "hover-elevate"}`}
+                  data-testid={`mobile-link-${link.label.toLowerCase()}`}
+                >
+                  {link.label}
+                </Link>
+                {link.hasDropdown && (
+                  <div className="pl-4 space-y-0.5 mt-1">
+                    {services.map((s) => (
+                      <Link
+                        key={s.href}
+                        href={s.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`block px-3 py-2 rounded-md text-sm transition-colors ${location === s.href ? "text-primary font-medium" : "text-muted-foreground hover-elevate"}`}
+                        data-testid={`mobile-link-service-${s.href.split("/").pop()}`}
+                      >
+                        {s.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="pt-2">
+              <Link href="/quote" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full" data-testid="mobile-link-get-quote">Get a Quote</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
