@@ -57,55 +57,78 @@ export default function ServiceDetail() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-10">
-              <div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4" data-testid="text-service-overview-heading">
+            Service Overview
+          </h2>
+          <p className="text-muted-foreground leading-relaxed text-base sm:text-lg" data-testid="text-service-overview">
+            {service.overview}
+          </p>
+        </div>
+      </section>
+
+      <section className="pb-12 sm:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Target className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Best For</h2>
+                  <h3 className="text-lg font-semibold">Best For</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-best-for">
                   {service.bestFor.map((item) => (
                     <li key={item} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span>{item}</span>
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm">{item}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Wrench className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold">What's Included</h2>
+                  <h3 className="text-lg font-semibold">What's Included</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-whats-included">
                   {service.whatsIncluded.map((item) => (
                     <li key={item} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span>{item}</span>
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm">{item}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
+            <Card className="sm:col-span-2 lg:col-span-1">
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Typical Projects Around Charlotte</h2>
+                  <h3 className="text-lg font-semibold">Typical Projects</h3>
                 </div>
                 <ul className="space-y-3" data-testid="list-typical-projects">
                   {service.typicalProjects.map((item) => (
                     <li key={item} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span>{item}</span>
+                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm">{item}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
 
+      <section className="pb-16 sm:pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-10">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <DollarSign className="h-5 w-5 text-primary" />
