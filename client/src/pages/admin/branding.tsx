@@ -12,7 +12,7 @@ import type { SiteSettings } from "@shared/schema";
 
 function hslToHex(hslStr: string): string {
   const parts = hslStr.trim().split(/\s+/);
-  if (parts.length < 3) return "#3b82f6";
+  if (parts.length < 3) return "#b07430";
   const h = parseFloat(parts[0]);
   const s = parseFloat(parts[1]) / 100;
   const l = parseFloat(parts[2]) / 100;
@@ -28,7 +28,7 @@ function hslToHex(hslStr: string): string {
 function hexToHsl(hex: string): string {
   hex = hex.replace("#", "");
   if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
-  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "217 91% 60%";
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "28 65% 42%";
   const r = parseInt(hex.substring(0, 2), 16) / 255;
   const g = parseInt(hex.substring(2, 4), 16) / 255;
   const b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -60,8 +60,8 @@ export default function AdminBranding() {
     email: "info@brushwhackers.com",
     serviceArea: "Charlotte, NC & Surrounding Areas",
     logoUrl: "",
-    primaryColor: "#3b82f6",
-    secondaryColor: "#22c55e",
+    primaryColor: "#b07430",
+    secondaryColor: "#5a7a3a",
     fontFamily: "Inter",
     ctaText: "Get a Fast Quote",
     socialFacebook: "",
@@ -249,7 +249,7 @@ export default function AdminBranding() {
                   </div>
                   <div className="p-4 space-y-3 bg-background">
                     <p className="text-xs text-muted-foreground" style={{ fontFamily: form.fontFamily }}>
-                      Professional land clearing serving {form.serviceArea}
+                      Professional forestry mulching serving {form.serviceArea}
                     </p>
                     <Button size="sm" style={{ backgroundColor: `hsl(${hexToHsl(form.primaryColor)})`, color: "white" }} data-testid="preview-cta-button">
                       {form.ctaText}

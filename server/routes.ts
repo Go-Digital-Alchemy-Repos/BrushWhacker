@@ -516,8 +516,8 @@ export async function registerRoutes(
       brandingSystem: {
         settingsTable: "Single-row site_settings table stores all branding values",
         cssVariableInjection: "SiteSettingsProvider context loads settings on app init and injects --primary CSS variable into :root",
-        colorFormat: "Colors stored as HSL values (e.g. '217 91% 60%') for compatibility with Tailwind CSS variable system",
-        defaults: "Safe defaults applied if settings row missing: BrushWhackers, blue primary, green secondary, Inter font",
+        colorFormat: "Colors stored as HSL values (e.g. '28 65% 42%') for compatibility with Tailwind CSS variable system",
+        defaults: "Safe defaults applied if settings row missing: BrushWhackers, warm brown primary, sage green secondary, Inter font",
         livePreview: "Admin branding page includes a live preview card showing how changes will appear across the site",
         appliedLocations: "Settings are applied to: TopNav (logo + company name + CTA text), Footer (contact info + social links + company name), StickyQuoteButton (CTA text), CSS variables (primary color)",
       },

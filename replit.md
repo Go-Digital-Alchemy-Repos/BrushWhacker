@@ -1,10 +1,10 @@
-# BrushWhackers - Land Clearing & Brush Removal
+# BrushWhackers - Forestry Mulching & Land Clearing
 
 ## Overview
-BrushWhackers is a full-stack web application for a professional land clearing and brush removal business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management, blog CMS, and site-wide branding settings.
+BrushWhackers is a full-stack web application for a professional forestry mulching and land clearing business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management, blog CMS, and site-wide branding customization. Content style follows BrushWorksco.com approach with problem/solution messaging and forestry mulching focus.
 
 ## Current Phase
-Phase 6: Branding Settings
+Phase 7: Content Overhaul (BrushWorksco style)
 
 ## Tech Stack
 - **Frontend**: React + Vite + TypeScript + Wouter (routing) + TanStack Query
@@ -13,7 +13,7 @@ Phase 6: Branding Settings
 - **Database**: PostgreSQL (Neon-backed via Drizzle ORM)
 - **Auth**: Passport.js LocalStrategy + express-session (MemoryStore)
 - **Font**: Inter (configurable via branding settings)
-- **Brand Color**: Blue (primary: 217 91% 60%, configurable via branding settings)
+- **Brand Color**: Earth tones (primary: 28 65% 42% warm brown, secondary: 85 35% 38% sage green, configurable via branding settings)
 
 ## Project Structure
 ```
@@ -30,7 +30,7 @@ client/src/
     use-site-settings.tsx - SiteSettingsProvider context + useSiteSettings hook
     use-toast.ts         - Toast notifications hook
   pages/
-    home.tsx             - SEO landing page
+    home.tsx             - SEO landing page (problem/solution messaging, 3-step process)
     services.tsx         - Services overview
     service-detail.tsx   - Individual service pages
     pricing.tsx          - 4 pricing tiers
@@ -46,21 +46,29 @@ client/src/
       blog-list.tsx      - Blog CMS list with status/category filters
       blog-editor.tsx    - Blog editor with markdown preview
       branding.tsx       - Branding settings with live preview
-      docs.tsx           - Docs library (Phase 6 documentation)
+      docs.tsx           - Docs library documentation
   lib/
-    stock-images.ts      - Stock image URL constants
-    services-data.ts     - Full service definitions with SEO content
+    stock-images.ts      - Stock image URL constants (forestry/land clearing themed)
+    services-data.ts     - Full service definitions with SEO content (6 services)
     queryClient.ts       - TanStack Query config with apiRequest helper
 server/
   auth.ts                - Passport.js setup, session config, requireAdmin middleware
   routes.ts              - All API endpoints (public + admin)
   storage.ts             - DatabaseStorage class (leads, blog, settings CRUD)
-  seed-blog.ts           - Seeds 12 SEO blog articles on first startup
+  seed-blog.ts           - Seeds 8 SEO blog articles on first startup
   db.ts                  - Drizzle ORM + pg pool setup
   index.ts               - Express server entry
 shared/
   schema.ts              - Drizzle schema (users, leads, lead_notes, lead_activity, blog_posts, site_settings) + Zod validation
 ```
+
+## Services (6 total)
+1. **Forestry Mulching** (/services/forestry-mulching) - Flagship service, single-pass clearing
+2. **Trail Cutting** (/services/trail-cutting) - Access lanes, hunting trails, pond access
+3. **Hillside Mulching** (/services/hillside-mulching) - Steep slope and difficult terrain clearing
+4. **Brush Hogging** (/services/brush-hogging) - Rotary mowing for fields and pastures
+5. **Fence Line Clearing** (/services/fence-line-clearing) - Property boundary vegetation management
+6. **Invasive Growth Removal** (/services/invasive-growth-removal) - Kudzu, privet, honeysuckle, wisteria
 
 ## Database Schema
 - **users**: id (varchar PK), username, password
@@ -105,8 +113,8 @@ shared/
 ## Branding System
 - **site_settings table**: Single-row table stores all branding values
 - **SiteSettingsProvider**: React context loads settings on app init, injects --primary CSS variable into :root
-- **Color format**: HSL values (e.g. '217 91% 60%') for Tailwind CSS variable compatibility
-- **Defaults**: Safe defaults if settings missing: BrushWhackers, blue primary, green secondary, Inter font
+- **Color format**: HSL values (e.g. '28 65% 42%') for Tailwind CSS variable compatibility
+- **Defaults**: Safe defaults if settings missing: BrushWhackers, warm brown primary, sage green secondary, Inter font
 - **Applied locations**: TopNav (logo + company name + CTA text), Footer (contact info + social links + company name), StickyQuoteButton (CTA text)
 - **Admin page**: /admin/branding with live preview card, color pickers, company info, social links
 
@@ -125,8 +133,14 @@ shared/
 ## SEO Approach
 - Each page has unique title and meta description via usePageMeta hook
 - H1 tags include service name + "Charlotte, NC"
-- Regional references throughout all content
-- 12 SEO-optimized blog articles with Charlotte-area focus
+- Regional references throughout all content (Charlotte area counties and towns)
+- 8 SEO-optimized blog articles with Charlotte-area focus
+- Problem/solution messaging style (BrushWorksco approach)
+
+## Color Scheme
+- **Light mode**: Warm cream/beige backgrounds, brown primary (#b07430), sage green accents
+- **Dark mode**: Deep brown/charcoal backgrounds, warm amber primary, earthy tones
+- Earth tone palette throughout: warm browns, sage greens, natural olives
 
 ## Running Locally
 1. `npm install`
@@ -135,7 +149,7 @@ shared/
 4. `npm run dev` (starts on port 5000)
 
 ## User Preferences
-- Brand color: Blue (configurable)
+- Brand color: Earth tones / warm brown (configurable)
 - Target area: Charlotte, NC & surrounding counties (50mi radius)
 - Modern, beautiful, engaging design
 - SEO-driven content with local keywords
@@ -143,3 +157,4 @@ shared/
 - Admin CRM for managing leads
 - Full blog CMS with markdown editor
 - Site-wide branding customization
+- Content style: BrushWorksco.com approach (problem/solution, forestry mulching focus)

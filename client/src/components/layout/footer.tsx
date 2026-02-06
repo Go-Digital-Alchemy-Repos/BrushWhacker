@@ -3,13 +3,12 @@ import { TreePine, Phone, Mail, MapPin } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const serviceLinks = [
-  { label: "Land Clearing", href: "/services/land-clearing" },
-  { label: "Brush Removal", href: "/services/brush-removal" },
   { label: "Forestry Mulching", href: "/services/forestry-mulching" },
-  { label: "Lot Clearing", href: "/services/lot-clearing" },
-  { label: "Stump Grinding", href: "/services/stump-grinding" },
-  { label: "Driveway & Trail Cutting", href: "/services/driveway-trail-cutting" },
-  { label: "Storm Cleanup", href: "/services/storm-cleanup" },
+  { label: "Trail Cutting", href: "/services/trail-cutting" },
+  { label: "Hillside Mulching", href: "/services/hillside-mulching" },
+  { label: "Brush Hogging", href: "/services/brush-hogging" },
+  { label: "Fence Line Clearing", href: "/services/fence-line-clearing" },
+  { label: "Invasive Growth Removal", href: "/services/invasive-growth-removal" },
 ];
 
 const companyLinks = [
@@ -43,7 +42,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Professional land clearing and brush removal services serving the greater {settings.serviceArea}.
+              Professional forestry mulching and land clearing services serving the greater {settings.serviceArea}.
             </p>
             {(settings.socialFacebook || settings.socialInstagram || settings.socialYoutube || settings.socialGoogle) && (
               <div className="flex items-center gap-3 pt-1">

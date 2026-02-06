@@ -26,13 +26,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const SERVICES_MAP: Record<string, string> = {
-  "land-clearing": "Land Clearing",
-  "brush-removal": "Brush Removal",
   "forestry-mulching": "Forestry Mulching",
-  "lot-clearing": "Lot Clearing",
-  "stump-grinding": "Stump Grinding",
-  "driveway-trail-cutting": "Driveway & Trail Cutting",
-  "storm-cleanup": "Storm Cleanup",
+  "trail-cutting": "Trail Cutting",
+  "hillside-mulching": "Hillside Mulching",
+  "brush-hogging": "Brush Hogging",
+  "fence-line-clearing": "Fence Line Clearing",
+  "invasive-growth-removal": "Invasive Growth Removal",
 };
 
 function formatDate(d: string | Date | null) {

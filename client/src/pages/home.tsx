@@ -7,71 +7,69 @@ import { STOCK_IMAGES } from "@/lib/stock-images";
 import { SERVICES } from "@/lib/services-data";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import {
-  TreePine, Axe, Mountain, Trees, Truck,
+  TreePine, Axe, Mountain, Trees,
   Shield, Clock, Star, ArrowRight, Phone, CheckCircle2,
-  MapPin, Leaf, Zap, Users, Eye, HardHat
+  MapPin, Leaf, Zap, Users, Eye, HardHat, Fence, Bug
 } from "lucide-react";
 
 const SERVICE_ICONS: Record<string, typeof Mountain> = {
-  "land-clearing": Mountain,
-  "brush-removal": Axe,
   "forestry-mulching": TreePine,
-  "lot-clearing": Trees,
-  "stump-grinding": Zap,
-  "driveway-trail-cutting": Leaf,
-  "storm-cleanup": Truck,
+  "trail-cutting": Leaf,
+  "hillside-mulching": Mountain,
+  "brush-hogging": Axe,
+  "fence-line-clearing": Fence,
+  "invasive-growth-removal": Bug,
 };
 
 const stats = [
-  { value: "500+", label: "Projects Completed" },
-  { value: "15+", label: "Years Experience" },
+  { value: "500+", label: "Acres Cleared" },
+  { value: "10+", label: "Years Experience" },
   { value: "100%", label: "Insured & Licensed" },
   { value: "4.9", label: "Average Rating" },
 ];
 
 const whatWeClear = [
-  { icon: Axe, title: "Brush & overgrowth" },
-  { icon: TreePine, title: "Small trees & saplings" },
-  { icon: Shield, title: "Fence lines & property edges" },
+  { icon: TreePine, title: "Dense brush & undergrowth" },
+  { icon: Axe, title: "Overgrown fields & pastures" },
+  { icon: Mountain, title: "Steep slopes & hillsides" },
+  { icon: Fence, title: "Fence lines & property edges" },
   { icon: Leaf, title: "Trails & access lanes" },
-  { icon: Truck, title: "Storm debris & downed limbs" },
-  { icon: HardHat, title: "Building pads & lot prep" },
+  { icon: Bug, title: "Invasive vines & growth" },
 ];
 
 const processSteps = [
-  { step: "1", title: "Tell us about your property", desc: "Fill out our quick quote form with your property details, goals, and photos if available." },
-  { step: "2", title: "We confirm access, scope, and timeline", desc: "We review your request, confirm site access, and outline what to expect." },
-  { step: "3", title: "We clear, mulch, and leave it clean", desc: "Our crew arrives with the right equipment and gets the job done right." },
-  { step: "4", title: "Optional haul-off, grading, or follow-up pass", desc: "Need more? We offer haul-off, finish grading, or a second pass as needed." },
+  { step: "1", title: "Tell Us About Your Land", desc: "Fill out our quick quote form with your property details, photos, and what you need cleared." },
+  { step: "2", title: "We Plan the Approach", desc: "We review your property, confirm access, and build a clear plan with the right equipment for the job." },
+  { step: "3", title: "We Clear It Clean", desc: "Our crew arrives, clears the land, and leaves your property clean and ready for whatever comes next." },
 ];
 
 const whyBrushWhackers = [
-  { icon: MapPin, text: "Locally serving Charlotte & surrounding counties" },
-  { icon: HardHat, text: "Commercial-grade equipment & attachments" },
-  { icon: Eye, text: "Clear communication + photo updates available" },
-  { icon: Shield, text: "Respect for property lines, utilities, and drainage" },
-  { icon: Users, text: "Safety-first crew and jobsite standards" },
+  { icon: TreePine, text: "Forestry mulching specialists — it's what we do best" },
+  { icon: MapPin, text: "Locally owned and operated in the Charlotte metro" },
+  { icon: HardHat, text: "Commercial-grade mulchers, brush hogs, and skid steers" },
+  { icon: Eye, text: "Clear communication and photo updates on every job" },
+  { icon: Shield, text: "Fully insured with respect for property lines and utilities" },
 ];
 
 const testimonials = [
   {
-    text: "They cleared our overgrown half-acre in a single day. The crew was professional, on time, and left the lot looking better than we imagined.",
-    name: "(Customer name, neighborhood)",
+    text: "They mulched about three acres of heavy brush behind our house in less than two days. You'd never know it was overgrown. Clean, professional, and easy to work with.",
+    name: "Mark T. — Huntersville",
   },
   {
-    text: "We needed storm debris removed fast after a big storm took down several trees. BrushWhackers responded quickly and handled everything start to finish.",
-    name: "(Customer name, neighborhood)",
+    text: "We called BrushWhackers to clear fence lines on our horse property. They did exactly what they said they'd do, showed up on time, and the price was fair. Already booked them for a second project.",
+    name: "Laura S. — Waxhaw",
   },
   {
-    text: "Great communication throughout the entire project. They sent us photo updates and the final result was exactly what we needed for our new build.",
-    name: "(Customer name, neighborhood)",
+    text: "Our lot was full of invasive kudzu and privet. These guys cleared every bit of it and left a nice mulch layer behind. Huge difference. Highly recommend.",
+    name: "James R. — Matthews",
   },
 ];
 
 export default function Home() {
   usePageMeta({
-    title: "BrushWhackers | Land Clearing & Brush Removal in Charlotte, NC",
-    description: "BrushWhackers provides land clearing, brush removal, forestry mulching, lot clearing, stump grinding, and storm cleanup across the Charlotte, NC region. Fast quotes. Professional equipment.",
+    title: "BrushWhackers | Forestry Mulching & Land Clearing in Charlotte, NC",
+    description: "BrushWhackers provides forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC region. Fast quotes. Professional equipment.",
   });
 
   return (
@@ -89,15 +87,15 @@ export default function Home() {
               <span>Serving Charlotte, NC & Surrounding Areas</span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight" data-testid="hero-heading">
-              Land Clearing & Brush Removal Done Right — Charlotte, North Carolina
+              Forestry Mulching & Land Clearing — Charlotte, NC
             </h1>
             <p className="text-lg text-gray-300 leading-relaxed max-w-xl" data-testid="hero-subtext">
-              From overgrown lots to storm debris cleanup, BrushWhackers uses professional equipment (skid steers, forestry mulchers, and attachments) to clear land efficiently — with results you can see.
+              We grind brush, saplings, and overgrowth into mulch in a single pass — no hauling, no burn piles, no mess. Just clean land, ready for whatever comes next.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/quote">
                 <Button size="lg" className="gap-2" data-testid="hero-cta-quote">
-                  Get a Fast Quote
+                  Get a Free Quote
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -132,7 +130,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What We Clear</h2>
             <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              No matter what's covering your land, we have the equipment and experience to handle it.
+              From tangled undergrowth to wide-open fields, we have the equipment and know-how to handle it all.
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -155,12 +153,12 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Services</h2>
             <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              From small residential lots to large commercial properties, we have the equipment and expertise to handle any job.
+              Whether it's a half-acre residential lot or 50 acres of rural land, we bring the right equipment and get it done.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SERVICES.map((service) => {
-              const IconComp = SERVICE_ICONS[service.slug] || Mountain;
+              const IconComp = SERVICE_ICONS[service.slug] || TreePine;
               return (
                 <Link key={service.slug} href={`/services/${service.slug}`}>
                   <Card className="h-full hover-elevate transition-all cursor-pointer group" data-testid={`card-service-${service.slug}`}>
@@ -191,11 +189,11 @@ export default function Home() {
 
       <section className="py-16 sm:py-20" data-testid="process-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How Our Process Works</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How It Works</h2>
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-            From first contact to finished job, here is what to expect when you work with BrushWhackers.
+            Three simple steps from overgrown to cleared and clean.
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+          <div className="grid sm:grid-cols-3 gap-6 mt-10">
             {processSteps.map((item) => (
               <div key={item.step} className="text-center space-y-3">
                 <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto text-lg font-bold" data-testid={`process-step-${item.step}`}>
@@ -217,7 +215,7 @@ export default function Home() {
                 Why BrushWhackers
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                With over 15 years of experience and hundreds of satisfied customers, we are the go-to team for land clearing in the Charlotte metropolitan area.
+                We're not a general contractor who happens to own a mulcher. Forestry mulching and land clearing is all we do — and we've spent years building the equipment lineup, crew, and processes to do it better than anyone in the Charlotte area.
               </p>
               <div className="mt-8 space-y-5">
                 {whyBrushWhackers.map((b) => (
@@ -234,8 +232,8 @@ export default function Home() {
             </div>
             <div className="relative rounded-md overflow-hidden aspect-[4/3]">
               <img
-                src={STOCK_IMAGES.heavyMachinery}
-                alt="Heavy machinery clearing land"
+                src={STOCK_IMAGES.heavyEquipment}
+                alt="Heavy equipment clearing land"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -254,7 +252,7 @@ export default function Home() {
               <Badge variant="secondary" className="no-default-active-elevate">Charlotte Metro Region</Badge>
             </div>
             <p className="text-muted-foreground leading-relaxed" data-testid="text-service-area">
-              BrushWhackers proudly serves Charlotte, Lake Norman, Huntersville, Concord, Matthews, Mint Hill, Fort Mill, Belmont, and surrounding areas within about an hour of the Charlotte metro. Whether your property is in a residential neighborhood or on rural acreage, we bring our equipment and crew to get the job done.
+              BrushWhackers proudly serves Charlotte, Lake Norman, Huntersville, Concord, Matthews, Mint Hill, Fort Mill, Belmont, Waxhaw, Indian Trail, Monroe, and surrounding areas within about an hour of the Charlotte metro. Whether your property is in a residential neighborhood or on rural acreage, we bring our equipment and crew to get the job done.
             </p>
           </div>
         </div>
@@ -295,13 +293,13 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center text-white">
           <h2 className="text-3xl sm:text-4xl font-bold">Ready to reclaim your land?</h2>
           <p className="mt-3 text-white/80 max-w-xl mx-auto">
-            Get a free, no-obligation quote today. We serve the entire Charlotte metro area and beyond.
+            Get a free, no-obligation quote today. Tell us about your property and we'll handle the rest.
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-8">
             <Link href="/quote">
               <Button size="lg" variant="secondary" className="gap-2" data-testid="cta-get-quote">
                 <CheckCircle2 className="h-4 w-4" />
-                Get a Fast Quote
+                Get a Free Quote
               </Button>
             </Link>
           </div>

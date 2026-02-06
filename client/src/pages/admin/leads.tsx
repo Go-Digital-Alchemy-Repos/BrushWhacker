@@ -32,13 +32,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 const COUNTIES = ["Mecklenburg", "Union", "Cabarrus", "Gaston", "Iredell", "Lincoln", "Rowan", "Stanly", "York (SC)", "Lancaster (SC)"];
 const SERVICES = [
-  { value: "land-clearing", label: "Land Clearing" },
-  { value: "brush-removal", label: "Brush Removal" },
   { value: "forestry-mulching", label: "Forestry Mulching" },
-  { value: "lot-clearing", label: "Lot Clearing" },
-  { value: "stump-grinding", label: "Stump Grinding" },
-  { value: "driveway-trail-cutting", label: "Driveway & Trail Cutting" },
-  { value: "storm-cleanup", label: "Storm Cleanup" },
+  { value: "trail-cutting", label: "Trail Cutting" },
+  { value: "hillside-mulching", label: "Hillside Mulching" },
+  { value: "brush-hogging", label: "Brush Hogging" },
+  { value: "fence-line-clearing", label: "Fence Line Clearing" },
+  { value: "invasive-growth-removal", label: "Invasive Growth Removal" },
 ];
 
 function formatDate(d: string | Date | null) {

@@ -9,8 +9,8 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function Services() {
   usePageMeta({
-    title: "Land Clearing Services | BrushWhackers Charlotte, NC",
-    description: "Explore BrushWhackers services: land clearing, brush removal, forestry mulching, lot clearing, stump grinding, driveway and trail cutting, and storm cleanup in the Charlotte area.",
+    title: "Forestry Mulching & Land Clearing Services | BrushWhackers Charlotte, NC",
+    description: "BrushWhackers offers forestry mulching, trail cutting, hillside mulching, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC area.",
   });
 
   return (
@@ -23,10 +23,10 @@ export default function Services() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-services-title">
-            Land Clearing Services in the Charlotte, NC Area
+            Forestry Mulching & Land Clearing Services in Charlotte, NC
           </h1>
           <p className="mt-4 text-gray-300 max-w-2xl mx-auto text-lg">
-            BrushWhackers offers a full range of land clearing and brush management services across Charlotte, Mecklenburg County, Union County, Cabarrus County, and surrounding areas. Whether you need a fence line cleaned up or a multi-acre lot cleared, we have the right equipment and experience. Tell us about your project and get a fast quote.
+            BrushWhackers specializes in forestry mulching and land clearing across Charlotte, Mecklenburg County, Union County, Cabarrus County, and surrounding areas. From overgrown lots to steep hillsides, invasive growth to fence line clearing, we bring the right equipment to every job.
           </p>
           <Link href="/quote">
             <Button size="lg" className="mt-6 gap-2" data-testid="services-hero-cta">

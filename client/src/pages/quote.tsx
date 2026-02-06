@@ -22,13 +22,12 @@ const STEPS = [
 ];
 
 const SERVICE_OPTIONS = [
-  "Land Clearing",
-  "Brush Removal",
   "Forestry Mulching",
-  "Lot Clearing",
-  "Stump Grinding",
-  "Driveway/Trail Cutting",
-  "Storm Cleanup",
+  "Trail Cutting",
+  "Hillside Mulching",
+  "Brush Hogging",
+  "Fence Line Clearing",
+  "Invasive Growth Removal",
 ];
 
 const PROPERTY_TYPES = ["Residential", "Commercial", "Farm", "HOA", "Other"];
@@ -88,7 +87,7 @@ export default function Quote() {
   usePageMeta({
     title: "Get a Quote | BrushWhackers",
     description:
-      "Request a fast quote for land clearing, brush removal, forestry mulching, lot clearing, stump grinding, trails, and storm cleanup in the Charlotte area.",
+      "Request a fast quote for forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal in the Charlotte area.",
   });
 
   const { toast } = useToast();

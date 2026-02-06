@@ -5,13 +5,12 @@ import { Menu, X, ChevronDown, TreePine } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const services = [
-  { label: "Land Clearing", href: "/services/land-clearing" },
-  { label: "Brush Removal", href: "/services/brush-removal" },
   { label: "Forestry Mulching", href: "/services/forestry-mulching" },
-  { label: "Lot Clearing", href: "/services/lot-clearing" },
-  { label: "Stump Grinding", href: "/services/stump-grinding" },
-  { label: "Driveway & Trail Cutting", href: "/services/driveway-trail-cutting" },
-  { label: "Storm Cleanup", href: "/services/storm-cleanup" },
+  { label: "Trail Cutting", href: "/services/trail-cutting" },
+  { label: "Hillside Mulching", href: "/services/hillside-mulching" },
+  { label: "Brush Hogging", href: "/services/brush-hogging" },
+  { label: "Fence Line Clearing", href: "/services/fence-line-clearing" },
+  { label: "Invasive Growth Removal", href: "/services/invasive-growth-removal" },
 ];
 
 const navLinks = [
