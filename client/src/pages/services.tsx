@@ -11,6 +11,22 @@ export default function Services() {
   usePageMeta({
     title: "Forestry Mulching & Land Clearing Services | BrushWhackers Charlotte, NC",
     description: "BrushWhackers offers forestry mulching, trail cutting, hillside mulching, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC area.",
+    canonicalUrl: "/services",
+    jsonLd: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Land Clearing Services",
+      "description": "Professional land clearing and forestry mulching services offered by BrushWhackers in the Charlotte, NC area.",
+      "numberOfItems": 6,
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Forestry Mulching", "url": `${window.location.origin}/services/forestry-mulching` },
+        { "@type": "ListItem", "position": 2, "name": "Trail Cutting", "url": `${window.location.origin}/services/trail-cutting` },
+        { "@type": "ListItem", "position": 3, "name": "Hillside Mulching", "url": `${window.location.origin}/services/hillside-mulching` },
+        { "@type": "ListItem", "position": 4, "name": "Brush Hogging", "url": `${window.location.origin}/services/brush-hogging` },
+        { "@type": "ListItem", "position": 5, "name": "Fence Line Clearing", "url": `${window.location.origin}/services/fence-line-clearing` },
+        { "@type": "ListItem", "position": 6, "name": "Invasive Growth Removal", "url": `${window.location.origin}/services/invasive-growth-removal` }
+      ]
+    }),
   });
 
   return (

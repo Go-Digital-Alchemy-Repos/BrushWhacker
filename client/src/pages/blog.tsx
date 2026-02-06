@@ -18,19 +18,32 @@ const CATEGORIES = [
 
 const categoryImages: Record<string, string> = {
   "Forestry Mulching": STOCK_IMAGES.forestryMulching,
-  "Land Clearing": STOCK_IMAGES.landClearing,
-  "Brush Removal": STOCK_IMAGES.brushRemoval,
-  "Lot Clearing": STOCK_IMAGES.lotClearing,
-  "Storm Cleanup": STOCK_IMAGES.stormCleanup,
-  "Stump Grinding": STOCK_IMAGES.stumpGrinding,
-  "Driveway/Trail Cutting": STOCK_IMAGES.drivewayTrailCutting,
-  "Pricing": STOCK_IMAGES.landClearing,
+  "Land Clearing": STOCK_IMAGES.clearedLand,
+  "Brush Removal": STOCK_IMAGES.heavyEquipment,
+  "Lot Clearing": STOCK_IMAGES.clearedLand,
+  "Storm Cleanup": STOCK_IMAGES.forest,
+  "Stump Grinding": STOCK_IMAGES.heavyEquipment,
+  "Driveway/Trail Cutting": STOCK_IMAGES.trailCutting,
+  "Pricing": STOCK_IMAGES.clearedLand,
 };
 
 export default function Blog() {
   usePageMeta({
     title: "Blog & Resources | BrushWhackers Charlotte, NC",
     description: "Expert tips, guides, and insights about land clearing, brush removal, forestry mulching, and property management in the Charlotte, NC area.",
+    canonicalUrl: "/blog",
+    jsonLd: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "BrushWhackers Blog",
+      "description": "Expert tips and guides about land clearing, forestry mulching, and property management in Charlotte, NC.",
+      "url": `${window.location.origin}/blog`,
+      "publisher": {
+        "@type": "Organization",
+        "name": "BrushWhackers",
+        "url": window.location.origin
+      }
+    }),
   });
 
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -102,7 +115,7 @@ export default function Blog() {
                   <Card className="overflow-hidden hover-elevate cursor-pointer h-full" data-testid={`card-blog-${post.slug}`}>
                     <div className="aspect-video overflow-hidden">
                       <img
-                        src={post.featuredImageUrl || categoryImages[post.category] || STOCK_IMAGES.landClearing}
+                        src={post.featuredImageUrl || categoryImages[post.category] || STOCK_IMAGES.clearedLand}
                         alt={post.title}
                         className="w-full h-full object-cover"
                       />

@@ -13,6 +13,34 @@ export default function ServiceDetail() {
   usePageMeta({
     title: service?.metaTitle || "Service | BrushWhackers",
     description: service?.metaDescription || "Professional land clearing services in Charlotte, NC.",
+    canonicalUrl: `/services/${slug}`,
+    ogType: "website",
+    jsonLd: service ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Service",
+          "name": service.title,
+          "description": service.description,
+          "provider": {
+            "@type": "LocalBusiness",
+            "name": "BrushWhackers",
+            "telephone": "(704) 608-5783",
+            "address": { "@type": "PostalAddress", "addressLocality": "Charlotte", "addressRegion": "NC", "addressCountry": "US" }
+          },
+          "areaServed": { "@type": "City", "name": "Charlotte", "addressRegion": "NC" },
+          "url": `${window.location.origin}/services/${slug}`
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": service.faqs.map(faq => ({
+            "@type": "Question",
+            "name": faq.q,
+            "acceptedAnswer": { "@type": "Answer", "text": faq.a }
+          }))
+        }
+      ]
+    }) : undefined,
   });
 
   if (!service) {

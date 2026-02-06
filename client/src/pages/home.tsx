@@ -70,6 +70,31 @@ export default function Home() {
   usePageMeta({
     title: "BrushWhackers | Forestry Mulching & Land Clearing in Charlotte, NC",
     description: "BrushWhackers provides forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC region. Fast quotes. Professional equipment.",
+    canonicalUrl: "/",
+    ogType: "website",
+    jsonLd: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "BrushWhackers",
+      "description": "Professional forestry mulching and land clearing services in Charlotte, NC and surrounding areas.",
+      "url": window.location.origin,
+      "telephone": "(704) 608-5783",
+      "email": "info@brushwhackers.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Charlotte",
+        "addressRegion": "NC",
+        "addressCountry": "US"
+      },
+      "areaServed": {
+        "@type": "GeoCircle",
+        "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 35.2271, "longitude": -80.8431 },
+        "geoRadius": "80467"
+      },
+      "priceRange": "$$",
+      "openingHours": "Mo-Fr 07:00-18:00",
+      "sameAs": []
+    }),
   });
 
   return (

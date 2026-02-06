@@ -86,8 +86,8 @@ interface FormData {
 export default function Quote() {
   usePageMeta({
     title: "Get a Quote | BrushWhackers",
-    description:
-      "Request a fast quote for forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal in the Charlotte area.",
+    description: "Request a fast quote for forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal in the Charlotte area.",
+    canonicalUrl: "/quote",
   });
 
   const { toast } = useToast();
@@ -217,7 +217,7 @@ export default function Quote() {
 
   if (submitted) {
     return (
-      <SiteLayout hideStickyQuote>
+      <SiteLayout>
         <section className="py-16 sm:py-20">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
             <div className="flex justify-center mb-6">
@@ -259,7 +259,7 @@ export default function Quote() {
   }
 
   return (
-    <SiteLayout hideStickyQuote>
+    <SiteLayout>
       <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">

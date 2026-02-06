@@ -107,6 +107,15 @@ export default function Pricing() {
   usePageMeta({
     title: "Pricing | BrushWhackers Charlotte, NC",
     description: "Simple pricing options for brush removal, forestry mulching, and land clearing in the Charlotte area. Choose hourly, half-day, full-day, or by-the-acre options. Get a fast quote.",
+    canonicalUrl: "/pricing",
+    jsonLd: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "PriceSpecification",
+      "name": "BrushWhackers Pricing",
+      "description": "Pricing tiers for forestry mulching and land clearing services in Charlotte, NC.",
+      "priceCurrency": "USD",
+      "url": `${window.location.origin}/pricing`
+    }),
   });
 
   return (

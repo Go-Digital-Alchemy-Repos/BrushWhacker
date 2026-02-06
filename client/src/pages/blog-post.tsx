@@ -12,13 +12,13 @@ import type { BlogPost } from "@shared/schema";
 
 const categoryImages: Record<string, string> = {
   "Forestry Mulching": STOCK_IMAGES.forestryMulching,
-  "Land Clearing": STOCK_IMAGES.landClearing,
-  "Brush Removal": STOCK_IMAGES.brushRemoval,
-  "Lot Clearing": STOCK_IMAGES.lotClearing,
-  "Storm Cleanup": STOCK_IMAGES.stormCleanup,
-  "Stump Grinding": STOCK_IMAGES.stumpGrinding,
-  "Driveway/Trail Cutting": STOCK_IMAGES.drivewayTrailCutting,
-  "Pricing": STOCK_IMAGES.landClearing,
+  "Land Clearing": STOCK_IMAGES.clearedLand,
+  "Brush Removal": STOCK_IMAGES.heavyEquipment,
+  "Lot Clearing": STOCK_IMAGES.clearedLand,
+  "Storm Cleanup": STOCK_IMAGES.forest,
+  "Stump Grinding": STOCK_IMAGES.heavyEquipment,
+  "Driveway/Trail Cutting": STOCK_IMAGES.trailCutting,
+  "Pricing": STOCK_IMAGES.clearedLand,
 };
 
 function renderMarkdown(md: string): string {
@@ -67,6 +67,26 @@ export default function BlogPostPage() {
   usePageMeta({
     title: post ? `${post.title} | BrushWhackers Blog` : "Blog | BrushWhackers Charlotte, NC",
     description: post?.excerpt || "Expert tips and guides about land clearing in Charlotte, NC.",
+    canonicalUrl: `/blog/${slug}`,
+    ogType: post ? "article" : "website",
+    jsonLd: post ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": post.title,
+      "description": post.excerpt,
+      "datePublished": post.publishedAt,
+      "dateModified": post.updatedAt || post.publishedAt,
+      "author": { "@type": "Organization", "name": "BrushWhackers" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "BrushWhackers",
+        "url": window.location.origin
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `${window.location.origin}/blog/${slug}`
+      }
+    }) : undefined,
   });
 
   if (isLoading) {
@@ -154,7 +174,7 @@ export default function BlogPostPage() {
                     <Card className="overflow-hidden hover-elevate cursor-pointer h-full" data-testid={`card-related-${rp.slug}`}>
                       <div className="aspect-video overflow-hidden">
                         <img
-                          src={rp.featuredImageUrl || categoryImages[rp.category] || STOCK_IMAGES.landClearing}
+                          src={rp.featuredImageUrl || categoryImages[rp.category] || STOCK_IMAGES.clearedLand}
                           alt={rp.title}
                           className="w-full h-full object-cover"
                         />
