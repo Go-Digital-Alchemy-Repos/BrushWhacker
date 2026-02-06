@@ -851,7 +851,7 @@ When a page with JSON-LD is rendered, the \`usePageMeta\` hook injects a \`<scri
 
 **Format:**
 \`\`\`
-PUBLIC_SITE_URL=https://brushwhackers.com
+PUBLIC_SITE_URL=https://forestryboss.com
 \`\`\`
 - Must include the protocol (\`https://\`)
 - Must NOT include a trailing slash

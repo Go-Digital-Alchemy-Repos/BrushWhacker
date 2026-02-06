@@ -1,7 +1,7 @@
 # Forestry Boss - Forestry Mulching & Land Clearing
 
 ## Overview
-Forestry Boss is a full-stack web application for a professional forestry mulching and land clearing business. It targets the Charlotte, North Carolina area and features a comprehensive administrative portal. The application aims to streamline lead management, content creation, and site branding, all while focusing on SEO-driven content and a problem/solution messaging style akin to BrushWorksco.com. Key capabilities include CRM lead management, a blog CMS, site-wide branding customization, and a comprehensive CMS with advanced page-building features. The project's ambition is to provide a robust online presence to support business growth and efficient operations.
+Forestry Boss is a full-stack web application for a professional forestry mulching and land clearing business. It targets the Charlotte, North Carolina area and features a comprehensive administrative portal. The application aims to streamline lead management, content creation, and site branding, all while focusing on SEO-driven content and a problem/solution messaging style focused on forestry mulching benefits. Key capabilities include CRM lead management, a blog CMS, site-wide branding customization, and a comprehensive CMS with advanced page-building features. The project's ambition is to provide a robust online presence to support business growth and efficient operations.
 
 ## User Preferences
 - Brand color: Earth tones / warm brown (configurable)
@@ -12,7 +12,7 @@ Forestry Boss is a full-stack web application for a professional forestry mulchi
 - Admin CRM for managing leads
 - Full blog CMS with markdown editor
 - Site-wide branding customization
-- Content style: BrushWorksco.com approach (problem/solution, forestry mulching focus)
+- Content style: Problem/solution approach (forestry mulching focus)
 
 ## System Architecture
 The application is built with a React + Vite frontend, a Node/Express backend, and a PostgreSQL database.

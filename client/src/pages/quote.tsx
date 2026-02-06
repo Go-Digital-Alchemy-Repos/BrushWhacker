@@ -666,7 +666,7 @@ export default function Quote() {
                       <Mail className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <div>
                         <div className="font-medium">Email</div>
-                        <div className="text-muted-foreground">info@brushwhackers.com</div>
+                        <div className="text-muted-foreground">info@forestryboss.com</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-sm">
