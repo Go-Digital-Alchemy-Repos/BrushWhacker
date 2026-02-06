@@ -1,3 +1,5 @@
+import { storage } from "./storage";
+
 export interface DocsEntry {
   category: string;
   title: string;
@@ -948,5 +950,211 @@ If \`PUBLIC_SITE_URL\` is not set, the application falls back to using the \`Hos
       updatedAt: now,
       tags: ["crm", "testimonials", "reviews", "cms-block"],
     },
+    {
+      category: "Architecture",
+      title: "Docs Governance System",
+      bodyMarkdown: `# Docs Governance System
+
+## Overview
+The Docs Governance System ensures all internal documentation follows a consistent structure, is searchable, categorized, and version-aware. It replaces the previous in-memory docs system with a database-backed solution that supports CRUD operations, quality validation, and programmatic documentation creation.
+
+## Architecture
+Documentation entries are stored in the \`docs_entries\` PostgreSQL table. The system consists of:
+- **Database layer**: Drizzle ORM schema and storage methods for CRUD
+- **API layer**: RESTful admin endpoints for managing entries
+- **Seeder**: Migrates legacy in-memory docs into the database at startup
+- **DocsLogger**: Server-side utility for programmatic doc creation
+- **Validator**: API endpoint and UI tool for checking doc quality
+- **Admin UI**: Full editor with markdown preview, metadata fields, and quality checker
+
+## Database
+**Table: docs_entries**
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID PK | Entry identifier |
+| category | text | One of 14 standard categories |
+| title | text | Document title |
+| slug | text (unique) | URL-friendly identifier |
+| body_markdown | text | Full markdown content |
+| tags | text[] | Searchable tags array |
+| related | text[] | Slugs of related doc entries |
+| version | text | Version string (default "1.0") |
+| author | text | Author name (default "system") |
+| created_at | timestamp | Creation time |
+| updated_at | timestamp | Last update time |
+
+## APIs
+\`\`\`
+GET /api/admin/docs
+  Query: ?category=CMS&search=builder
+  Response: { categories: string[], entries: DocsEntry[] }
+
+GET /api/admin/docs/:id
+  Response: DocsEntry
+
+POST /api/admin/docs
+  Body: InsertDocsEntry
+  Response 201: DocsEntry
+
+PATCH /api/admin/docs/:id
+  Body: Partial<InsertDocsEntry>
+  Response: DocsEntry
+
+DELETE /api/admin/docs/:id
+  Response: { ok: true }
+
+GET /api/admin/docs/validate/all
+  Response: { total, issueCount, issues: [{ id, title, problems }] }
+\`\`\`
+
+## Frontend Integration
+The Admin Docs page at \`/admin/docs\` provides:
+- Category sidebar with counts and expand/collapse
+- Full-text search across titles, tags, and body content
+- Markdown editor with live preview for creating/editing entries
+- Metadata fields: category, tags, related docs, version, author
+- Quality validation report showing missing sections and issues
+
+## Security Considerations
+- All docs endpoints require admin authentication via \`requireAdmin\` middleware
+- Slug uniqueness is enforced at both API and database levels
+- Input validation uses Zod schemas from \`drizzle-zod\`
+
+## Operational Notes
+- Existing in-memory docs are migrated to DB on first startup via the seed function
+- The seed is idempotent — entries are matched by slug to avoid duplicates
+- The DocsLogger utility (\`server/utils/docsLogger.ts\`) allows future features to auto-document themselves
+
+## Related Docs
+- How Documentation Works in This App`,
+      updatedAt: now,
+      tags: ["architecture", "docs", "governance", "system"],
+    },
+    {
+      category: "Getting Started",
+      title: "How Documentation Works in This App",
+      bodyMarkdown: `# How Documentation Works in This App
+
+## Overview
+This application includes a built-in documentation library accessible from the Admin panel at \`/admin/docs\`. Documentation is stored in the database and organized by categories, making it searchable, editable, and maintainable as the application grows.
+
+## Architecture
+The docs system has three layers:
+1. **Database storage**: All documentation lives in the \`docs_entries\` table with full CRUD support
+2. **Admin UI**: A dedicated docs management page with editor, preview, and validation tools
+3. **Seed system**: Initial documentation is seeded from \`server/docs-data.ts\` on first startup
+
+## Database
+Documentation uses the \`docs_entries\` table. See the "Docs Governance System" doc for full schema details.
+
+## APIs
+All docs endpoints are under \`/api/admin/docs\` and require admin authentication. See the "Docs Governance System" doc for endpoint details.
+
+## Frontend Integration
+Navigate to \`/admin/docs\` in the admin panel to:
+- Browse docs by category in the left sidebar
+- Search across all docs using the search bar
+- Create new docs with the "Create Doc" button
+- Edit existing docs by selecting them and clicking "Edit"
+- Run the quality validator to check for missing sections
+
+## Security Considerations
+Only authenticated admin users can access, create, edit, or delete documentation entries.
+
+## Operational Notes
+
+### Category System
+14 standard categories organize all documentation:
+Getting Started, APIs, Architecture, CMS, CRM, Database, Deployment, Integrations, Media, Performance, Routing, Security, SEO, Theming
+
+"Getting Started" always appears first in the sidebar.
+
+### Doc Template Standard
+Every doc entry should follow this markdown template with these sections:
+- **Overview**: What the feature does and why it exists
+- **Architecture**: How it works internally
+- **Database**: Tables and fields involved
+- **APIs**: Endpoint documentation
+- **Frontend Integration**: UI components and connections
+- **Security Considerations**: Auth, validation, rate limits
+- **Operational Notes**: Migration notes, edge cases
+- **Related Docs**: Links to related entries
+
+### DocsLogger Helper
+The \`server/utils/docsLogger.ts\` utility allows code to programmatically create documentation:
+\`\`\`typescript
+import { logFeatureDocumentation } from "./utils/docsLogger";
+
+await logFeatureDocumentation({
+  category: "CMS",
+  title: "My New Feature",
+  summary: "What it does",
+  endpoints: ["GET /api/admin/feature"],
+  tables: ["feature_table"],
+  frontendFiles: ["client/src/pages/feature.tsx"]
+});
+\`\`\`
+
+### Validation Tool
+The "Validate Docs" button in the admin UI checks all entries for:
+- Missing category or invalid category name
+- Missing required sections (Overview, Architecture, etc.)
+- Empty body content
+- Duplicate titles
+- No related docs linked
+
+## Related Docs
+- Docs Governance System`,
+      updatedAt: now,
+      tags: ["getting-started", "docs", "documentation", "tutorial"],
+    },
   ];
+}
+
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+const CATEGORY_MAP: Record<string, string> = {
+  "CMS": "CMS",
+  "Security": "Security",
+  "CRM": "CRM",
+  "SEO": "SEO",
+  "Theming": "Theming",
+  "Routing": "Routing",
+  "Media": "Media",
+  "Architecture": "Architecture",
+  "Getting Started": "Getting Started",
+};
+
+export async function seedDocsEntries() {
+  console.log("[seed-docs] Starting docs seed...");
+  const existing = await storage.getDocsEntries();
+  const existingSlugs = new Set(existing.map(e => e.slug));
+  const entries = getDocsEntries();
+  let inserted = 0;
+
+  for (const entry of entries) {
+    const slug = slugify(entry.title);
+    if (existingSlugs.has(slug)) continue;
+    const category = CATEGORY_MAP[entry.category] || entry.category;
+    await storage.createDocsEntry({
+      category,
+      title: entry.title,
+      slug,
+      bodyMarkdown: entry.bodyMarkdown,
+      tags: entry.tags,
+      related: [],
+      version: "1.0",
+      author: "system",
+    });
+    inserted++;
+    existingSlugs.add(slug);
+  }
+
+  console.log(`[seed-docs] Inserted ${inserted} new docs entries (${existing.length} already existed).`);
+  console.log("[seed-docs] Docs seed complete.");
 }

@@ -15,9 +15,10 @@ import {
   type AdminUser, type InsertAdminUser, type UpdateAdminUser,
   type CrmProject, type InsertCrmProject, type UpdateCrmProject,
   type CmsTestimonial, type InsertCmsTestimonial, type UpdateCmsTestimonial,
+  type DocsEntry, type InsertDocsEntry,
   leads, leadNotes, leadActivity, blogPosts, siteSettings,
   cmsPages, cmsTemplates, cmsBlockLibrary, cmsMedia, themePresets, cmsRedirects,
-  cmsPageRevisions, adminUsers, crmProjects, cmsTestimonials,
+  cmsPageRevisions, adminUsers, crmProjects, cmsTestimonials, docsEntries,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -112,6 +113,12 @@ export interface IStorage {
   updateTestimonial(id: string, data: Partial<UpdateCmsTestimonial>): Promise<CmsTestimonial | undefined>;
   deleteTestimonial(id: string): Promise<boolean>;
   getPublishedTestimonials(): Promise<CmsTestimonial[]>;
+  getDocsEntries(filters?: { category?: string; search?: string }): Promise<DocsEntry[]>;
+  getDocsEntry(id: string): Promise<DocsEntry | undefined>;
+  getDocsEntryBySlug(slug: string): Promise<DocsEntry | undefined>;
+  createDocsEntry(data: InsertDocsEntry): Promise<DocsEntry>;
+  updateDocsEntry(id: string, data: Partial<InsertDocsEntry>): Promise<DocsEntry | undefined>;
+  deleteDocsEntry(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -659,6 +666,43 @@ export class DatabaseStorage implements IStorage {
 
   async getPublishedTestimonials(): Promise<CmsTestimonial[]> {
     return db.select().from(cmsTestimonials).where(eq(cmsTestimonials.publish, true)).orderBy(desc(cmsTestimonials.createdAt));
+  }
+
+  async getDocsEntries(filters?: { category?: string; search?: string }): Promise<DocsEntry[]> {
+    const conditions: any[] = [];
+    if (filters?.category) conditions.push(eq(docsEntries.category, filters.category));
+    if (filters?.search) {
+      const q = `%${filters.search}%`;
+      conditions.push(or(ilike(docsEntries.title, q), ilike(docsEntries.bodyMarkdown, q)));
+    }
+    return db.select().from(docsEntries)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(asc(docsEntries.category), asc(docsEntries.title));
+  }
+
+  async getDocsEntry(id: string): Promise<DocsEntry | undefined> {
+    const [entry] = await db.select().from(docsEntries).where(eq(docsEntries.id, id));
+    return entry;
+  }
+
+  async getDocsEntryBySlug(slug: string): Promise<DocsEntry | undefined> {
+    const [entry] = await db.select().from(docsEntries).where(eq(docsEntries.slug, slug));
+    return entry;
+  }
+
+  async createDocsEntry(data: InsertDocsEntry): Promise<DocsEntry> {
+    const [created] = await db.insert(docsEntries).values(data).returning();
+    return created;
+  }
+
+  async updateDocsEntry(id: string, data: Partial<InsertDocsEntry>): Promise<DocsEntry | undefined> {
+    const [updated] = await db.update(docsEntries).set({ ...data, updatedAt: new Date() } as any).where(eq(docsEntries.id, id)).returning();
+    return updated;
+  }
+
+  async deleteDocsEntry(id: string): Promise<boolean> {
+    const result = await db.delete(docsEntries).where(eq(docsEntries.id, id)).returning();
+    return result.length > 0;
   }
 }
 

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES, ADMIN_ROLES, insertCrmProjectSchema, updateCrmProjectSchema, insertCmsTestimonialSchema, updateCmsTestimonialSchema } from "@shared/schema";
+import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES, ADMIN_ROLES, insertCrmProjectSchema, updateCrmProjectSchema, insertCmsTestimonialSchema, updateCmsTestimonialSchema, insertDocsEntrySchema, DOC_CATEGORIES } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import passport from "passport";
@@ -944,11 +944,72 @@ export async function registerRoutes(
     next();
   });
 
-  app.get("/api/admin/docs", requireAdmin, (_req, res) => {
-    // All authenticated admins can read docs
-    const entries = getDocsEntries();
-    const categories = [...new Set(entries.map((e: any) => e.category))];
-    res.json({ categories, entries });
+  app.get("/api/admin/docs", requireAdmin, async (_req, res) => {
+    const { category, search } = _req.query as { category?: string; search?: string };
+    const entries = await storage.getDocsEntries({ category, search });
+    const cats = [...DOC_CATEGORIES];
+    res.json({ categories: cats, entries });
+  });
+
+  app.get("/api/admin/docs/validate/all", requireAdmin, async (_req, res) => {
+    const entries = await storage.getDocsEntries();
+    const requiredSections = ["Overview", "Architecture", "APIs", "Frontend Integration", "Security Considerations", "Related Docs"];
+    const issues: { id: string; title: string; problems: string[] }[] = [];
+    const titles = new Map<string, string>();
+    for (const entry of entries) {
+      const problems: string[] = [];
+      if (!entry.category) problems.push("Missing category");
+      if (!DOC_CATEGORIES.includes(entry.category as any)) problems.push(`Invalid category: ${entry.category}`);
+      if (!entry.bodyMarkdown || entry.bodyMarkdown.trim().length === 0) problems.push("Empty body");
+      for (const section of requiredSections) {
+        if (!entry.bodyMarkdown.includes(`## ${section}`)) problems.push(`Missing section: ${section}`);
+      }
+      if (entry.related.length === 0) problems.push("No related docs linked");
+      const dupId = titles.get(entry.title);
+      if (dupId) problems.push(`Duplicate title (also in ${dupId})`);
+      titles.set(entry.title, entry.id);
+      if (problems.length > 0) issues.push({ id: entry.id, title: entry.title, problems });
+    }
+    res.json({ total: entries.length, issueCount: issues.length, issues });
+  });
+
+  app.get("/api/admin/docs/:id", requireAdmin, async (req, res) => {
+    const entry = await storage.getDocsEntry(req.params.id);
+    if (!entry) return res.status(404).json({ error: "Doc not found" });
+    res.json(entry);
+  });
+
+  app.post("/api/admin/docs", requireAdmin, async (req, res) => {
+    try {
+      const data = insertDocsEntrySchema.parse(req.body);
+      const existing = await storage.getDocsEntryBySlug(data.slug);
+      if (existing) return res.status(409).json({ error: "Slug already exists" });
+      const entry = await storage.createDocsEntry(data);
+      res.status(201).json(entry);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Invalid data" });
+    }
+  });
+
+  app.patch("/api/admin/docs/:id", requireAdmin, async (req, res) => {
+    try {
+      const data = insertDocsEntrySchema.partial().parse(req.body);
+      if (data.slug) {
+        const existing = await storage.getDocsEntryBySlug(data.slug);
+        if (existing && existing.id !== req.params.id) return res.status(409).json({ error: "Slug already exists" });
+      }
+      const updated = await storage.updateDocsEntry(req.params.id, data);
+      if (!updated) return res.status(404).json({ error: "Doc not found" });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Invalid data" });
+    }
+  });
+
+  app.delete("/api/admin/docs/:id", requireAdmin, async (req, res) => {
+    const ok = await storage.deleteDocsEntry(req.params.id);
+    if (!ok) return res.status(404).json({ error: "Doc not found" });
+    res.json({ ok: true });
   });
 
   return httpServer;

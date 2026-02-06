@@ -37,7 +37,8 @@ The application is built with a React + Vite frontend, a Node/Express backend, a
 
 **System Design Choices:**
 - **Modular Structure**: The project is organized into `client/`, `server/`, and `shared/` directories for clear separation of concerns.
-- **Data Schemas**: Detailed Drizzle schemas for `users`, `admin_users`, `leads`, `blog_posts`, `site_settings`, `crm_projects`, and `cms_testimonials`.
+- **Data Schemas**: Detailed Drizzle schemas for `users`, `admin_users`, `leads`, `blog_posts`, `site_settings`, `crm_projects`, `cms_testimonials`, and `docs_entries`.
+- **Docs Governance**: Database-backed documentation system with 14 standardized categories, CRUD API, markdown editor with preview, quality validator, and `docsLogger` utility for programmatic doc creation. Docs are seeded from `server/docs-data.ts` on startup and stored in `docs_entries` table.
 - **Admin Layout**: A role-aware sidebar navigation and authentication guards enhance the admin experience.
 
 ## External Dependencies

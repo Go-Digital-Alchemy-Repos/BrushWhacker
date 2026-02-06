@@ -475,6 +475,46 @@ export interface BlockInstance {
   };
 }
 
+export const DOC_CATEGORIES = [
+  "Getting Started",
+  "APIs",
+  "Architecture",
+  "CMS",
+  "CRM",
+  "Database",
+  "Deployment",
+  "Integrations",
+  "Media",
+  "Performance",
+  "Routing",
+  "Security",
+  "SEO",
+  "Theming",
+] as const;
+export type DocCategory = (typeof DOC_CATEGORIES)[number];
+
+export const docsEntries = pgTable("docs_entries", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  bodyMarkdown: text("body_markdown").notNull().default(""),
+  tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+  related: text("related").array().notNull().default(sql`'{}'::text[]`),
+  version: text("version").notNull().default("1.0"),
+  author: text("author").notNull().default("system"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertDocsEntrySchema = createInsertSchema(docsEntries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertDocsEntry = z.infer<typeof insertDocsEntrySchema>;
+export type DocsEntry = typeof docsEntries.$inferSelect;
+
 export interface PageSeo {
   title?: string;
   description?: string;
