@@ -97,14 +97,20 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
             {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
             <div className="grid md:grid-cols-3 gap-6">
-              {(block.props.features || []).map((f: any, i: number) => (
-                <Card key={i} className="hover-elevate">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">{f.title}</h3>
-                    <p className="text-sm text-muted-foreground">{f.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {(block.props.features || []).map((f: any, i: number) => {
+                const IconComp = f.icon ? getServiceIcon(f.icon) : Sparkles;
+                return (
+                  <Card key={i} className="hover-elevate">
+                    <CardContent className="p-6">
+                      <div className="h-10 w-10 rounded-full flex items-center justify-center mb-3" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+                        <IconComp className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold mb-2">{f.title}</h3>
+                      <p className="text-sm text-muted-foreground">{f.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -116,16 +122,23 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
           <div className="max-w-5xl mx-auto">
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">{block.props.heading}</h2>}
             <div className="grid md:grid-cols-3 gap-6">
-              {(block.props.services || []).map((s: any, i: number) => (
-                <a key={i} href={s.slug}>
-                  <Card className="hover-elevate cursor-pointer h-full">
-                    <CardContent className="p-6">
-                      <h3 className="font-semibold mb-2">{s.title}</h3>
-                      <p className="text-sm text-muted-foreground">{s.description}</p>
-                    </CardContent>
-                  </Card>
-                </a>
-              ))}
+              {(block.props.services || []).map((s: any, i: number) => {
+                const iconKey = s.icon || s.slug?.split("/").pop() || s.title || "";
+                const IconComp = getServiceIcon(iconKey);
+                return (
+                  <a key={i} href={s.slug}>
+                    <Card className="hover-elevate cursor-pointer h-full">
+                      <CardContent className="p-6">
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center mb-3" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+                          <IconComp className="h-5 w-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-2">{s.title}</h3>
+                        <p className="text-sm text-muted-foreground">{s.description}</p>
+                      </CardContent>
+                    </Card>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -260,6 +273,12 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
         </section>
       );
 
+    case "before_after_gallery":
+      return <BeforeAfterGalleryBlock block={block} />;
+
+    case "featured_projects":
+      return <FeaturedProjectsBlock block={block} />;
+
     case "project_gallery":
       return <ProjectGalleryBlock block={block} />;
 
@@ -279,6 +298,198 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
         </section>
       );
   }
+}
+
+function BeforeAfterCompareSlider({ beforeUrl, beforeAlt, afterUrl, afterAlt }: {
+  beforeUrl: string; beforeAlt: string; afterUrl: string; afterAlt: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState(50);
+  const isDragging = useRef(false);
+
+  const handleMove = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    setPosition((x / rect.width) * 100);
+  }, []);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (isDragging.current) { e.preventDefault(); handleMove(e.clientX); }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (isDragging.current && e.touches[0]) { handleMove(e.touches[0].clientX); }
+    };
+    const onEnd = () => { isDragging.current = false; };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onEnd);
+    };
+  }, [handleMove]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full aspect-[4/3] overflow-hidden rounded-md select-none cursor-col-resize"
+      onMouseDown={(e) => { isDragging.current = true; handleMove(e.clientX); }}
+      onTouchStart={(e) => { isDragging.current = true; if (e.touches[0]) handleMove(e.touches[0].clientX); }}
+      data-testid="before-after-slider"
+    >
+      <img src={afterUrl} alt={afterAlt} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${position}%` }}>
+        <img src={beforeUrl} alt={beforeAlt} className="absolute inset-0 w-full h-full object-cover" style={{ minWidth: containerRef.current ? `${containerRef.current.offsetWidth}px` : "100%" }} draggable={false} />
+      </div>
+      <div className="absolute top-0 bottom-0 z-10" style={{ left: `${position}%`, transform: "translateX(-50%)" }}>
+        <div className="w-0.5 h-full bg-white shadow-md" />
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M5 3L2 8L5 13M11 3L14 8L11 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+      <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-black/60 text-white text-xs rounded-md">Before</div>
+      <div className="absolute top-2 right-2 z-10 px-2 py-0.5 bg-black/60 text-white text-xs rounded-md">After</div>
+    </div>
+  );
+}
+
+function BeforeAfterGalleryBlock({ block }: { block: BlockInstance }) {
+  const layout = block.props.layout || "compare";
+  const items = Array.isArray(block.props.items) ? block.props.items : [];
+
+  return (
+    <section className="py-16 sm:py-20 px-6" data-testid={`block-before-after-gallery-${block.id}`}>
+      <div className="max-w-5xl mx-auto">
+        {block.props.headline && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.headline}</h2>}
+        {block.props.subheadline && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheadline}</p>}
+        {items.length === 0 ? (
+          <p className="text-center text-muted-foreground text-sm">No before/after items added yet.</p>
+        ) : (
+          <div className={layout === "compare" ? "space-y-10" : "grid md:grid-cols-2 gap-6"}>
+            {items.map((item: any, i: number) => (
+              <div key={item.id || i}>
+                {item.title && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold">{item.title}</h3>
+                    {item.location && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{item.location}</span>}
+                  </div>
+                )}
+                {layout === "compare" && item.beforeImageUrl && item.afterImageUrl ? (
+                  <BeforeAfterCompareSlider
+                    beforeUrl={item.beforeImageUrl}
+                    beforeAlt={item.beforeAlt || "Before"}
+                    afterUrl={item.afterImageUrl}
+                    afterAlt={item.afterAlt || "After"}
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {item.beforeImageUrl && (
+                      <div>
+                        <div className="aspect-[4/3] rounded-md overflow-hidden bg-muted">
+                          <img src={item.beforeImageUrl} alt={item.beforeAlt || "Before"} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Before</p>
+                      </div>
+                    )}
+                    {item.afterImageUrl && (
+                      <div>
+                        <div className="aspect-[4/3] rounded-md overflow-hidden bg-muted">
+                          <img src={item.afterImageUrl} alt={item.afterAlt || "After"} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">After</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {block.props.ctaText && (
+          <div className="text-center mt-10">
+            <a href={block.props.ctaHref || "/quote"} className="inline-block">
+              <Button data-testid={`link-before-after-cta-${block.id}`}>{block.props.ctaText}</Button>
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FeaturedProjectsBlock({ block }: { block: BlockInstance }) {
+  const limit = block.props.limit || 6;
+  const featured = block.props.showOnlyFeatured !== false;
+  const queryParams = new URLSearchParams();
+  if (featured) queryParams.set("featured", "true");
+  queryParams.set("limit", String(limit));
+  
+  const { data: projects } = useQuery<CrmProject[]>({
+    queryKey: ["/api/public/projects", { featured, limit }],
+    queryFn: async () => {
+      const res = await fetch(`/api/public/projects?${queryParams}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  const visible = (projects || []).slice(0, limit);
+
+  return (
+    <section className="py-16 sm:py-20 px-6" data-testid={`block-featured-projects-${block.id}`}>
+      <div className="max-w-5xl mx-auto">
+        {block.props.headline && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.headline}</h2>}
+        {block.props.subheadline && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheadline}</p>}
+        {visible.length === 0 ? (
+          <p className="text-center text-muted-foreground text-sm">No projects to display yet.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visible.map((project) => {
+              const images = Array.isArray(project.beforeAfter) ? (project.beforeAfter as { url: string; label?: string }[]) : [];
+              const services = Array.isArray(project.services) ? (project.services as string[]) : [];
+              return (
+                <Card key={project.id} className="overflow-hidden hover-elevate" data-testid={`featured-project-${project.id}`}>
+                  {images.length > 0 && (
+                    <div className="aspect-video overflow-hidden">
+                      <img src={images[0].url} alt={images[0].label || project.title} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  )}
+                  <CardContent className="p-4 space-y-2">
+                    <h3 className="font-semibold">{project.title}</h3>
+                    {project.location && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{project.location}</p>
+                    )}
+                    {project.summary && <p className="text-sm text-muted-foreground line-clamp-2">{project.summary}</p>}
+                    {services.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {services.map((s, i) => (
+                          <span key={i} className="text-xs bg-muted px-2 py-0.5 rounded-md">{s}</span>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+        {block.props.ctaText && (
+          <div className="text-center mt-8">
+            <a href={block.props.ctaHref || "/projects"} className="inline-block">
+              <Button data-testid={`link-featured-projects-cta-${block.id}`}>{block.props.ctaText}</Button>
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function ProjectGalleryBlock({ block }: { block: BlockInstance }) {

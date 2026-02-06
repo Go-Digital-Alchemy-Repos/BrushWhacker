@@ -1860,21 +1860,38 @@ function BlockPropertyEditor({ block, blockDef, onPropChange }: BlockPropertyEdi
                     </div>
                     {field.itemFields ? (
                       <div className="space-y-1.5">
-                        {field.itemFields.map((subField) => (
-                          <div key={subField.key}>
-                            <Label className="text-xs text-muted-foreground">{subField.label}</Label>
-                            <Input
-                              value={typeof item[subField.key] === "string" ? item[subField.key] : ""}
-                              onChange={(e) => {
-                                const updated = [...items];
-                                updated[idx] = { ...updated[idx], [subField.key]: e.target.value };
-                                onPropChange(field.key, updated);
-                              }}
-                              className="text-sm"
-                              data-testid={`input-array-${field.key}-${idx}-${subField.key}`}
-                            />
-                          </div>
-                        ))}
+                        {field.itemFields.map((subField) => {
+                          if (subField.type === "image" || isImageField(subField.key)) {
+                            return (
+                              <ImageFieldWithPicker
+                                key={subField.key}
+                                fieldKey={`array-${field.key}-${idx}-${subField.key}`}
+                                label={subField.label}
+                                value={typeof item[subField.key] === "string" ? item[subField.key] : ""}
+                                onPropChange={(_k, val) => {
+                                  const updated = [...items];
+                                  updated[idx] = { ...updated[idx], [subField.key]: val };
+                                  onPropChange(field.key, updated);
+                                }}
+                              />
+                            );
+                          }
+                          return (
+                            <div key={subField.key}>
+                              <Label className="text-xs text-muted-foreground">{subField.label}</Label>
+                              <Input
+                                value={typeof item[subField.key] === "string" ? item[subField.key] : ""}
+                                onChange={(e) => {
+                                  const updated = [...items];
+                                  updated[idx] = { ...updated[idx], [subField.key]: e.target.value };
+                                  onPropChange(field.key, updated);
+                                }}
+                                className="text-sm"
+                                data-testid={`input-array-${field.key}-${idx}-${subField.key}`}
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <Input
