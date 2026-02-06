@@ -174,9 +174,7 @@ export default function Pricing() {
                     <span className="text-sm text-muted-foreground ml-1">/{tier.priceDetail}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">{tier.subPrice}</p>
-                  <div className="mt-3 mb-4">
-                    <Badge variant="secondary" className="text-xs no-default-active-elevate">Best for: {tier.bestFor}</Badge>
-                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 mb-4"><span className="font-medium">Best for:</span> {tier.bestFor}</p>
                   <ul className="space-y-2.5 flex-1">
                     {tier.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm">
