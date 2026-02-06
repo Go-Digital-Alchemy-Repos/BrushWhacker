@@ -5,7 +5,7 @@ import {
   TreePine, LayoutDashboard, Users, FileText, Palette, BookOpen,
   LogOut, Loader2, ExternalLink, Menu, X, Shield, ShieldAlert,
   FolderOpen, MessageSquareQuote, ChevronDown, Layout, LayoutGrid,
-  ImageIcon, ArrowRightLeft, Search,
+  ImageIcon, ArrowRightLeft, Search, Settings
 } from "lucide-react";
 import { useState } from "react";
 import AdminLogin from "@/pages/admin/login";
@@ -56,6 +56,7 @@ const navEntries: NavEntry[] = [
   },
   { title: "Branding", href: "/admin/branding", icon: Palette, allowedRoles: ["super_admin", "admin"] },
   { title: "Docs", href: "/admin/docs", icon: BookOpen, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
+  { title: "Settings", href: "/admin/settings", icon: Settings, allowedRoles: ["super_admin", "admin"] },
 ];
 
 const ROLE_LABELS: Record<AdminRole, string> = {

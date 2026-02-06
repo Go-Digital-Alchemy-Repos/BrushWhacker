@@ -100,6 +100,25 @@ export const insertLeadActivitySchema = createInsertSchema(leadActivity).omit({
 export type InsertLeadActivity = z.infer<typeof insertLeadActivitySchema>;
 export type LeadActivity = typeof leadActivity.$inferSelect;
 
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull().references(() => conversations.id),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertConversationSchema = createInsertSchema(conversations);
+export const insertMessageSchema = createInsertSchema(messages);
+export type Conversation = typeof conversations.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+
 export const POST_STATUSES = ["draft", "published"] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 
@@ -153,6 +172,9 @@ export const siteSettings = pgTable("site_settings", {
   socialYoutube: text("social_youtube"),
   socialGoogle: text("social_google"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  mailgunApiKey: text("mailgun_api_key"),
+  mailgunDomain: text("mailgun_domain"),
+  chatgptApiKey: text("chatgpt_api_key"),
 });
 
 export const updateSiteSettingsSchema = z.object({
@@ -169,6 +191,9 @@ export const updateSiteSettingsSchema = z.object({
   socialInstagram: z.string().nullable().optional(),
   socialYoutube: z.string().nullable().optional(),
   socialGoogle: z.string().nullable().optional(),
+  mailgunApiKey: z.string().nullable().optional(),
+  mailgunDomain: z.string().nullable().optional(),
+  chatgptApiKey: z.string().nullable().optional(),
 });
 
 export type SiteSettings = typeof siteSettings.$inferSelect;

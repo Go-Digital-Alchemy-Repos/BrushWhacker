@@ -29,7 +29,7 @@ import {
   Settings, Search, ChevronDown, Type, Image, Layout, Loader2,
   Monitor, Tablet, Smartphone, ShieldCheck, AlertTriangle,
   CheckCircle2, ClipboardCheck, ExternalLink, Link2, ImageIcon, Hash,
-  History, RotateCcw
+  History, RotateCcw, Sparkles
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
@@ -1089,15 +1089,41 @@ export default function CmsPageBuilder() {
                 <TabsContent value="seo" className="flex-1 overflow-y-auto p-3 mt-0 space-y-4">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-sm font-semibold">SEO Settings</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={runSeoValidation}
-                      data-testid="button-validate-seo"
-                    >
-                      <ShieldCheck className="h-3.5 w-3.5 mr-1" />
-                      Validate SEO
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const res = await apiRequest("POST", "/api/admin/cms/ai/seo-suggest", {
+                              title,
+                              blocks,
+                            });
+                            const data = await res.json();
+                            setSeoTitle(data.title);
+                            setMetaDescription(data.description);
+                            setOgTitle(data.ogTitle || data.title);
+                            setOgDescription(data.ogDescription || data.description);
+                            toast({ title: "SEO suggestions applied" });
+                          } catch (err: any) {
+                            toast({ title: "AI Assistant failed", description: err.message, variant: "destructive" });
+                          }
+                        }}
+                        data-testid="button-ai-seo"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 mr-1" />
+                        AI Assistant
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={runSeoValidation}
+                        data-testid="button-validate-seo"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                        Validate SEO
+                      </Button>
+                    </div>
                   </div>
 
                   {seoValidation.length > 0 && (

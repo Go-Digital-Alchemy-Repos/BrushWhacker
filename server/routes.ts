@@ -60,10 +60,17 @@ function invalidateCache(prefix: string) {
   }
 }
 
+import { setupAuth } from "./auth";
+import { registerAiRoutes } from "./ai-routes";
+import { registerAudioRoutes } from "./replit_integrations/audio/routes";
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  setupAuth(app);
+  registerAiRoutes(app);
+  registerAudioRoutes(app);
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });

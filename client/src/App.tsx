@@ -25,6 +25,7 @@ import AdminBlogList from "@/pages/admin/blog-list";
 import AdminBlogEditor from "@/pages/admin/blog-editor";
 import AdminBranding from "@/pages/admin/branding";
 import AdminDocs from "@/pages/admin/docs";
+import AdminSettings from "@/pages/admin/settings";
 import AdminCmsTemplates from "@/pages/admin/cms-templates";
 import AdminCmsBlocks from "@/pages/admin/cms-blocks";
 import AdminCmsMedia from "@/pages/admin/cms-media";
@@ -65,6 +66,7 @@ function Router() {
       <Route path="/admin/cms/testimonials" component={AdminCmsTestimonials} />
       <Route path="/admin/branding" component={AdminBranding} />
       <Route path="/admin/docs" component={AdminDocs} />
+      <Route path="/admin/settings" component={AdminSettings} />
       <Route component={NotFound} />
     </Switch>
   );
