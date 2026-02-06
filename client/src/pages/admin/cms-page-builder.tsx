@@ -30,7 +30,10 @@ import {
   Monitor, Tablet, Smartphone, ShieldCheck, AlertTriangle,
   CheckCircle2, ClipboardCheck, ExternalLink, Link2, ImageIcon, Hash
 } from "lucide-react";
-import type { BlockInstance, CmsPage, CmsBlock } from "@shared/schema";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
+} from "@/components/ui/dialog";
+import type { BlockInstance, CmsPage, CmsBlock, CmsMediaItem } from "@shared/schema";
 
 function slugify(text: string): string {
   return text
@@ -1034,6 +1037,131 @@ interface BlockPropertyEditorProps {
   onPropChange: (key: string, value: any) => void;
 }
 
+function isImageField(key: string): boolean {
+  const lk = key.toLowerCase();
+  return lk === "imageurl" || lk === "image_url" || lk === "backgroundimage" || lk === "featuredimageurl" || lk === "ogimage" || lk === "src";
+}
+
+function ImageFieldWithPicker({ fieldKey, label, value, onPropChange, onAltSuggest }: {
+  fieldKey: string;
+  label: string;
+  value: string;
+  onPropChange: (key: string, value: any) => void;
+  onAltSuggest?: (alt: string) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <div className="space-y-1.5">
+        <Input
+          value={value}
+          onChange={(e) => onPropChange(fieldKey, e.target.value)}
+          placeholder="https://... or /uploads/..."
+          data-testid={`input-prop-${fieldKey}`}
+        />
+        {value && (
+          <div className="h-16 w-full rounded-md bg-muted overflow-hidden">
+            <img src={value} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-1.5"
+          onClick={() => setPickerOpen(true)}
+          data-testid={`button-media-picker-${fieldKey}`}
+        >
+          <ImageIcon className="h-3.5 w-3.5" /> Choose from Media Library
+        </Button>
+      </div>
+      <MediaPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelect={(item) => {
+          onPropChange(fieldKey, item.url);
+          if (item.alt && onAltSuggest) onAltSuggest(item.alt);
+          setPickerOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+interface MediaPickerDialogProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSelect: (item: CmsMediaItem) => void;
+}
+
+function MediaPickerDialog({ open, onOpenChange, onSelect }: MediaPickerDialogProps) {
+  const [search, setSearch] = useState("");
+  const { data } = useQuery<{ items: CmsMediaItem[]; total: number }>({
+    queryKey: ["/api/admin/cms/media", { search, pageSize: 50 }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      params.set("pageSize", "50");
+      const res = await fetch(`/api/admin/cms/media?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: open,
+  });
+
+  const items = data?.items || [];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Select from Media Library</DialogTitle>
+        </DialogHeader>
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search media..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+            data-testid="input-media-picker-search"
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {items.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              {search ? "No results." : "No media uploaded yet."}
+            </p>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="cursor-pointer rounded-md border border-border overflow-hidden hover-elevate"
+                  onClick={() => onSelect(item)}
+                  data-testid={`media-picker-item-${item.id}`}
+                >
+                  <div className="aspect-square bg-muted overflow-hidden">
+                    <img
+                      src={item.url}
+                      alt={item.alt || item.title || ""}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-1.5">
+                    <p className="text-xs truncate">{item.title || "Untitled"}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function BlockPropertyEditor({ block, blockDef, onPropChange }: BlockPropertyEditorProps) {
   const schema = blockDef?.schema as { fields?: Array<{
     key: string;
@@ -1048,32 +1176,54 @@ function BlockPropertyEditor({ block, blockDef, onPropChange }: BlockPropertyEdi
   if (fields.length === 0) {
     return (
       <div className="space-y-3">
-        {Object.entries(block.props).map(([key, value]) => (
-          <div key={key}>
-            <Label className="text-xs capitalize">{key}</Label>
-            {typeof value === "string" && value.length > 80 ? (
-              <Textarea
-                value={value}
-                onChange={(e) => onPropChange(key, e.target.value)}
-                rows={3}
-                data-testid={`input-prop-${key}`}
+        {Object.entries(block.props).map(([key, value]) => {
+          if (isImageField(key)) {
+            return (
+              <ImageFieldWithPicker
+                key={key}
+                fieldKey={key}
+                label={key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
+                value={typeof value === "string" ? value : ""}
+                onPropChange={onPropChange}
+                onAltSuggest={(alt) => {
+                  const candidates = [
+                    key.replace(/[Uu]rl$/, "Alt"),
+                    "imageAlt",
+                    key + "Alt",
+                  ];
+                  const targetKey = candidates.find((k) => k !== key && k in block.props);
+                  if (targetKey && !block.props[targetKey]) onPropChange(targetKey, alt);
+                }}
               />
-            ) : typeof value === "string" ? (
-              <Input
-                value={value}
-                onChange={(e) => onPropChange(key, e.target.value)}
-                data-testid={`input-prop-${key}`}
-              />
-            ) : (
-              <Input
-                value={JSON.stringify(value)}
-                readOnly
-                className="text-muted-foreground"
-                data-testid={`input-prop-${key}`}
-              />
-            )}
-          </div>
-        ))}
+            );
+          }
+          return (
+            <div key={key}>
+              <Label className="text-xs capitalize">{key}</Label>
+              {typeof value === "string" && value.length > 80 ? (
+                <Textarea
+                  value={value}
+                  onChange={(e) => onPropChange(key, e.target.value)}
+                  rows={3}
+                  data-testid={`input-prop-${key}`}
+                />
+              ) : typeof value === "string" ? (
+                <Input
+                  value={value}
+                  onChange={(e) => onPropChange(key, e.target.value)}
+                  data-testid={`input-prop-${key}`}
+                />
+              ) : (
+                <Input
+                  value={JSON.stringify(value)}
+                  readOnly
+                  className="text-muted-foreground"
+                  data-testid={`input-prop-${key}`}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -1082,6 +1232,25 @@ function BlockPropertyEditor({ block, blockDef, onPropChange }: BlockPropertyEdi
     <div className="space-y-3">
       {fields.map((field) => {
         const value = block.props[field.key];
+
+        if (isImageField(field.key) || field.type === "image") {
+          return (
+            <ImageFieldWithPicker
+              key={field.key}
+              fieldKey={field.key}
+              label={field.label}
+              value={typeof value === "string" ? value : ""}
+              onPropChange={onPropChange}
+              onAltSuggest={(alt) => {
+                const altKey = field.key.replace(/[Uu]rl$/, "Alt");
+                const altField = fields.find((f) => f.key === altKey || f.key === "imageAlt");
+                if (altField && !block.props[altField.key]) {
+                  onPropChange(altField.key, alt);
+                }
+              }}
+            />
+          );
+        }
 
         if (field.type === "text") {
           return (

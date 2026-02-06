@@ -109,6 +109,10 @@ shared/
 - `PATCH /api/admin/blog/:id` - Update blog post
 - `DELETE /api/admin/blog/:id` - Delete blog post
 - `GET /api/admin/docs` - Project documentation JSON
+- `POST /api/admin/cms/media/upload` - Upload image file (multipart, jpeg/png/webp, 10MB max)
+- `GET /api/admin/cms/media` - List media (pagination: page, pageSize, search)
+- `PATCH /api/admin/cms/media/:id` - Update media metadata (alt, title, tags)
+- `DELETE /api/admin/cms/media/:id` - Delete media (removes file from disk)
 
 ## Branding System
 - **site_settings table**: Single-row table stores all branding values

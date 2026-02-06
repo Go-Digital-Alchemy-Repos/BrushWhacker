@@ -74,8 +74,10 @@ export interface IStorage {
   deleteCmsTemplate(id: string): Promise<boolean>;
   getCmsBlocks(): Promise<CmsBlock[]>;
   createCmsBlock(data: InsertCmsBlock): Promise<CmsBlock>;
-  getCmsMedia(filters?: { search?: string }): Promise<CmsMediaItem[]>;
+  getCmsMedia(filters?: { search?: string; page?: number; pageSize?: number }): Promise<{ items: CmsMediaItem[]; total: number }>;
+  getCmsMediaById(id: string): Promise<CmsMediaItem | undefined>;
   createCmsMedia(data: InsertCmsMedia): Promise<CmsMediaItem>;
+  updateCmsMedia(id: string, data: Partial<{ alt: string; title: string; tags: string[] }>): Promise<CmsMediaItem | undefined>;
   deleteCmsMedia(id: string): Promise<boolean>;
   getThemePresets(): Promise<ThemePreset[]>;
   getActiveThemePreset(): Promise<ThemePreset | undefined>;
@@ -420,19 +422,38 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getCmsMedia(filters: { search?: string } = {}): Promise<CmsMediaItem[]> {
+  async getCmsMedia(filters: { search?: string; page?: number; pageSize?: number } = {}): Promise<{ items: CmsMediaItem[]; total: number }> {
     const conditions: any[] = [];
     if (filters.search) {
       const term = `%${filters.search}%`;
       conditions.push(or(ilike(cmsMedia.alt, term), ilike(cmsMedia.title, term)));
     }
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-    return db.select().from(cmsMedia).where(whereClause).orderBy(desc(cmsMedia.createdAt));
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 50;
+    const offset = (page - 1) * pageSize;
+    const [items, countResult] = await Promise.all([
+      db.select().from(cmsMedia).where(whereClause).orderBy(desc(cmsMedia.createdAt)).limit(pageSize).offset(offset),
+      db.select({ count: sql<number>`count(*)::int` }).from(cmsMedia).where(whereClause),
+    ]);
+    return { items, total: countResult[0]?.count || 0 };
+  }
+
+  async getCmsMediaById(id: string): Promise<CmsMediaItem | undefined> {
+    const [item] = await db.select().from(cmsMedia).where(eq(cmsMedia.id, id));
+    return item;
   }
 
   async createCmsMedia(data: InsertCmsMedia): Promise<CmsMediaItem> {
     const [created] = await db.insert(cmsMedia).values(data).returning();
     return created;
+  }
+
+  async updateCmsMedia(id: string, data: Partial<{ alt: string; title: string; tags: string[] }>): Promise<CmsMediaItem | undefined> {
+    const updates: any = { ...data, updatedAt: new Date() };
+    if (data.tags) updates.tags = data.tags;
+    const [updated] = await db.update(cmsMedia).set(updates).where(eq(cmsMedia.id, id)).returning();
+    return updated;
   }
 
   async deleteCmsMedia(id: string): Promise<boolean> {

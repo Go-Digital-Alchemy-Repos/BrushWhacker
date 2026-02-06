@@ -1,5 +1,9 @@
 import type { Express } from "express";
+import express from "express";
 import crypto from "crypto";
+import path from "path";
+import fs from "fs";
+import multer from "multer";
 import { storage } from "./storage";
 import { requireAdmin } from "./auth";
 import {
@@ -9,6 +13,44 @@ import {
   insertCmsMediaSchema,
   insertCmsRedirectSchema,
 } from "@shared/schema";
+
+const UPLOADS_DIR = path.join(process.cwd(), "server", "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const name = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
+      cb(null, name);
+    },
+  }),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type not allowed. Accepted: jpeg, png, webp`));
+    }
+  },
+});
+
+const uploadRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+function checkUploadRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = uploadRateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    uploadRateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 });
+    return true;
+  }
+  if (entry.count >= 10) return false;
+  entry.count++;
+  return true;
+}
 
 const previewTokens = new Map<string, { pageId: string; expiresAt: number }>();
 
@@ -183,14 +225,62 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
+  app.use("/uploads", (req, res, next) => {
+    if (req.method !== "GET") return res.status(405).end();
+    next();
+  }, express.static(UPLOADS_DIR, { maxAge: "7d" }));
+
   app.get("/api/admin/cms/media", requireAdmin, async (req, res) => {
     try {
-      const filters = { search: req.query.search as string | undefined };
-      const media = await storage.getCmsMedia(filters);
-      return res.json(media);
+      const filters = {
+        search: req.query.search as string | undefined,
+        page: req.query.page ? parseInt(req.query.page as string) : undefined,
+        pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+      };
+      const result = await storage.getCmsMedia(filters);
+      return res.json(result);
     } catch (err) {
       console.error("Failed to fetch media:", err);
       return res.status(500).json({ error: "Failed to fetch media" });
+    }
+  });
+
+  app.post("/api/admin/cms/media/upload", requireAdmin, (req, res, next) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    if (!checkUploadRateLimit(ip)) {
+      return res.status(429).json({ error: "Too many uploads. Try again in a minute." });
+    }
+    next();
+  }, upload.single("file"), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+      const url = `/uploads/${file.filename}`;
+      let width: number | undefined;
+      let height: number | undefined;
+
+      try {
+        const sizeOf = (await import("image-size")).default;
+        const dims = sizeOf(file.path);
+        width = dims.width;
+        height = dims.height;
+      } catch {}
+
+      const media = await storage.createCmsMedia({
+        url,
+        alt: (req.body.alt as string) || undefined,
+        title: (req.body.title as string) || file.originalname.replace(/\.[^.]+$/, ""),
+        width,
+        height,
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+      });
+
+      return res.status(201).json(media);
+    } catch (err) {
+      console.error("Failed to upload media:", err);
+      return res.status(500).json({ error: "Failed to upload media" });
     }
   });
 
@@ -208,10 +298,27 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
+  app.patch("/api/admin/cms/media/:id", requireAdmin, async (req, res) => {
+    try {
+      const { alt, title, tags } = req.body;
+      const updated = await storage.updateCmsMedia(req.params.id, { alt, title, tags });
+      if (!updated) return res.status(404).json({ error: "Media not found" });
+      return res.json(updated);
+    } catch (err) {
+      console.error("Failed to update media:", err);
+      return res.status(500).json({ error: "Failed to update media" });
+    }
+  });
+
   app.delete("/api/admin/cms/media/:id", requireAdmin, async (req, res) => {
     try {
+      const item = await storage.getCmsMediaById(req.params.id);
       const deleted = await storage.deleteCmsMedia(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Media not found" });
+      if (item && item.url.startsWith("/uploads/")) {
+        const filePath = path.join(UPLOADS_DIR, path.basename(item.url));
+        fs.unlink(filePath, () => {});
+      }
       return res.json({ ok: true });
     } catch (err) {
       console.error("Failed to delete media:", err);

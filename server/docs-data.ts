@@ -364,20 +364,210 @@ Admin-managed URL redirects with 301 (permanent) and 302 (temporary) support.
     },
     {
       category: "Media",
-      title: "Image & Media Handling",
-      bodyMarkdown: `**Media Library:**
-CMS media items store external image URLs with metadata.
+      title: "Media Upload API",
+      bodyMarkdown: `The Media Upload system supports local file uploads with metadata storage in the \`cms_media\` database table. The architecture is designed for future migration to S3/R2 without code rewrites — only the storage adapter needs to change.
 
-**Stock Images:**
-The app uses curated stock image URLs defined in \`client/src/lib/stock-images.ts\` for forestry/land clearing themed imagery.
+**Upload Endpoint:**
+\`\`\`
+POST /api/admin/cms/media/upload
+Content-Type: multipart/form-data
+Auth: Required (admin)
 
-**Image Best Practices:**
-- All images should have alt text for accessibility
-- The Content Checklist validates alt text coverage
-- Hero and Image Banner blocks require both imageUrl and imageAlt
-- OG images should be set for social sharing preview`,
+Form Fields:
+  file     (required) - Image file (jpeg, png, webp)
+  alt      (optional) - Alt text
+  title    (optional) - Display title (defaults to filename)
+
+Response 201:
+{
+  "id": "uuid",
+  "url": "/uploads/1706000000-abc123.jpg",
+  "width": 1920,
+  "height": 1080,
+  "mimeType": "image/jpeg",
+  "sizeBytes": 245000,
+  "alt": "Forestry mulching site",
+  "title": "job-site-photo",
+  "tags": [],
+  "createdAt": "2026-02-06T..."
+}
+\`\`\`
+
+**List Media (paginated):**
+\`\`\`
+GET /api/admin/cms/media?search=forest&page=1&pageSize=24
+Auth: Required (admin)
+
+Response 200:
+{
+  "items": [ CmsMediaItem[] ],
+  "total": 42
+}
+\`\`\`
+
+**Update Media Metadata:**
+\`\`\`
+PATCH /api/admin/cms/media/:id
+Auth: Required (admin)
+Body: { "alt": "Updated alt", "title": "New title", "tags": ["landscape"] }
+
+Response 200: CmsMediaItem
+\`\`\`
+
+**Delete Media:**
+\`\`\`
+DELETE /api/admin/cms/media/:id
+Auth: Required (admin)
+Response 200: { "ok": true }
+\`\`\`
+Deleting a media item also removes the file from disk if it is a local upload.
+
+**Add External URL (legacy):**
+\`\`\`
+POST /api/admin/cms/media
+Body: { "url": "https://example.com/img.jpg", "alt": "...", "title": "..." }
+\`\`\`
+
+**Storage Strategy:**
+- **Current:** Local file storage in \`server/uploads/\` served via \`/uploads/\` static route
+- **Future:** Swap multer disk storage for S3/R2 adapter; change URL prefix from \`/uploads/\` to bucket URL
+- The \`cms_media.url\` field stores the path — all code references this URL, making the swap transparent
+
+**Database Fields (cms_media):**
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| url | text | File URL (local path or external) |
+| alt | text | Alt text for accessibility |
+| title | text | Display title |
+| width | int | Image width in px |
+| height | int | Image height in px |
+| mimeType | text | MIME type (image/jpeg, etc.) |
+| sizeBytes | int | File size in bytes |
+| tags | jsonb | Array of string tags |
+| createdAt | timestamp | Creation date |
+| updatedAt | timestamp | Last update date |`,
       updatedAt: now,
-      tags: ["images", "media", "accessibility", "alt-text"],
+      tags: ["media", "upload", "API", "storage"],
+    },
+    {
+      category: "Media",
+      title: "Media Library UI",
+      bodyMarkdown: `The Media Library admin page at \`/admin/cms/media\` provides a visual interface for managing uploaded images.
+
+**Features:**
+- **Upload Button:** Opens a modal with drag-and-drop upload area
+- **Drag & Drop:** Drop zone accepts multiple files; validates type and size client-side before upload
+- **Grid Gallery:** Responsive grid (2-4 columns) showing image thumbnails with title and file info
+- **Search:** Filters media by title and alt text
+- **Pagination:** Page through results (24 items per page) with prev/next controls
+- **Detail Panel:** Click any image to open a side panel with:
+  - Image preview
+  - Dimensions, type, and file size
+  - Editable Title, Alt Text, and Tags fields
+  - Save, Copy URL, and Delete buttons
+- **Copy URL:** One-click copy of the full image URL to clipboard (also available on hover in grid)
+
+**Navigation:**
+Admin sidebar → CMS → Media, or directly at \`/admin/cms/media\`
+
+**Upload Flow:**
+1. Click "Upload" button in toolbar
+2. Drop files or click to browse
+3. Preview file list with names and sizes
+4. Click "Upload N files" to start
+5. Progress indicators show per-file status
+6. Gallery refreshes automatically after upload`,
+      updatedAt: now,
+      tags: ["media", "UI", "gallery", "upload", "drag-drop"],
+    },
+    {
+      category: "Media",
+      title: "Block Media Picker Integration",
+      bodyMarkdown: `Image fields in the CMS page builder block inspector include a "Choose from Media Library" button that opens a picker dialog.
+
+**How It Works:**
+1. The \`BlockPropertyEditor\` detects image fields by key name (\`imageUrl\`, \`backgroundImage\`, \`src\`, etc.) or schema type \`"image"\`
+2. Image fields render with:
+   - A standard URL text input
+   - An image preview thumbnail (if URL is set)
+   - A "Choose from Media Library" button
+3. Clicking the button opens the \`MediaPickerDialog\` modal
+4. The modal shows a searchable grid of uploaded media items
+5. Selecting an image sets the field value to the image URL
+6. If the selected media has alt text, it auto-suggests the alt text for the corresponding \`imageAlt\` field (if present and empty)
+
+**Detected Image Field Keys:**
+- \`imageUrl\` / \`image_url\`
+- \`backgroundImage\`
+- \`featuredImageUrl\`
+- \`ogImage\`
+- \`src\`
+
+**Schema-Based Detection:**
+Blocks using the schema system can set \`type: "image"\` on a field definition:
+\`\`\`json
+{
+  "fields": [
+    { "key": "imageUrl", "label": "Image", "type": "image" },
+    { "key": "imageAlt", "label": "Alt Text", "type": "text" }
+  ]
+}
+\`\`\`
+
+**Alt Text Auto-Suggest:**
+When selecting a media item, the picker attempts to auto-fill the corresponding alt text field:
+- \`imageUrl\` → looks for \`imageAlt\`
+- \`backgroundImage\` → looks for \`backgroundImageAlt\`
+- Only auto-fills if the alt field is currently empty`,
+      updatedAt: now,
+      tags: ["media", "picker", "blocks", "inspector", "integration"],
+    },
+    {
+      category: "Security",
+      title: "File Upload Security Constraints",
+      bodyMarkdown: `The media upload system enforces several security constraints to prevent abuse and ensure safe file handling.
+
+**Allowed File Types:**
+| MIME Type | Extension | Notes |
+|-----------|-----------|-------|
+| image/jpeg | .jpg, .jpeg | Most common photo format |
+| image/png | .png | Supports transparency |
+| image/webp | .webp | Modern, smaller file sizes |
+
+All other file types are rejected with a 400 error.
+
+**Maximum File Size:**
+- 10 MB per file
+- Enforced both server-side (multer config) and client-side (pre-validation)
+- Files exceeding the limit return a 413 error
+
+**Rate Limiting:**
+- 10 uploads per minute per IP address
+- Exceeding the limit returns 429 Too Many Requests
+- Rate limit resets after 60 seconds
+
+**Authentication:**
+- All media endpoints require admin authentication (\`requireAdmin\` middleware)
+- Unauthenticated requests receive 401
+- Session-based auth via Passport.js
+
+**File Naming:**
+- Uploaded files are renamed to \`{timestamp}-{random-hex}{ext}\`
+- Original filenames are stored as the media \`title\`
+- This prevents path traversal and filename collision attacks
+
+**Static File Serving:**
+- \`/uploads/\` route only accepts GET requests (other methods return 405)
+- Files served with 7-day cache headers
+- No directory listing is exposed
+
+**Deletion:**
+- Deleting a media record also removes the physical file from disk
+- File deletion is fire-and-forget (non-blocking)
+- Only local uploads (URLs starting with \`/uploads/\`) trigger file deletion`,
+      updatedAt: now,
+      tags: ["security", "upload", "validation", "rate-limiting"],
     },
   ];
 }
