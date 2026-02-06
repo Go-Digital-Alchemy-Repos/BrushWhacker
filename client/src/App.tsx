@@ -13,6 +13,7 @@ import BlogPost from "@/pages/blog-post";
 import Quote from "@/pages/quote";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminLeads from "@/pages/admin/leads";
+import LeadDetail from "@/pages/admin/lead-detail";
 import AdminCMS from "@/pages/admin/cms";
 import AdminBranding from "@/pages/admin/branding";
 import AdminDocs from "@/pages/admin/docs";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/quote" component={Quote} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={AdminLeads} />
+      <Route path="/admin/leads/:id" component={LeadDetail} />
       <Route path="/admin/cms" component={AdminCMS} />
       <Route path="/admin/branding" component={AdminBranding} />
       <Route path="/admin/docs" component={AdminDocs} />

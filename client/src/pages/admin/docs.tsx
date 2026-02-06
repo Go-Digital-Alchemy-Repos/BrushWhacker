@@ -1,18 +1,16 @@
-import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TreePine, ArrowLeft, BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import AdminLayout from "@/components/admin/admin-layout";
 
 interface DocsData {
   phase: string;
   overview: string;
   frontendRoutes: { path: string; description: string }[];
   backendRoutes: { method: string; path: string; description: string }[];
-  components: { name: string; description: string }[];
-  envVars: { name: string; description: string }[];
-  runLocally: string[];
+  authentication?: { method: string; adminUser: string; session: string; protection: string };
+  databaseSchema?: Record<string, string>;
 }
 
 export default function AdminDocs() {
@@ -21,23 +19,8 @@ export default function AdminDocs() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 gap-4">
-          <div className="flex items-center gap-2">
-            <TreePine className="h-6 w-6 text-primary" />
-            <span className="font-bold">BrushWhackers <span className="text-muted-foreground font-normal text-sm">Admin</span></span>
-          </div>
-          <Link href="/">
-            <Button variant="ghost" size="sm">Back to Site</Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Link href="/admin" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
-        </Link>
+    <AdminLayout>
+      <div className="p-6 max-w-6xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <BookOpen className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold" data-testid="text-admin-docs-title">Docs Library</h1>
@@ -66,6 +49,22 @@ export default function AdminDocs() {
                 <p className="text-muted-foreground leading-relaxed" data-testid="text-docs-overview">{docs.overview}</p>
               </CardContent>
             </Card>
+
+            {docs.authentication && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Authentication</h2>
+                  <div className="space-y-2 text-sm">
+                    {Object.entries(docs.authentication).map(([k, v]) => (
+                      <div key={k} className="flex items-start gap-3">
+                        <code className="text-xs bg-muted px-2 py-0.5 rounded-md shrink-0 capitalize">{k}</code>
+                        <span className="text-muted-foreground">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardContent className="p-6">
@@ -119,50 +118,24 @@ export default function AdminDocs() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Components Introduced</h2>
-                <div className="space-y-2">
-                  {docs.components.map((c) => (
-                    <div key={c.name} className="flex items-start gap-3 text-sm">
-                      <code className="text-xs bg-muted px-2 py-0.5 rounded-md shrink-0">{c.name}</code>
-                      <span className="text-muted-foreground">{c.description}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Environment Variables</h2>
-                <div className="space-y-2">
-                  {docs.envVars.map((v) => (
-                    <div key={v.name} className="flex items-start gap-3 text-sm">
-                      <code className="text-xs bg-muted px-2 py-0.5 rounded-md shrink-0">{v.name}</code>
-                      <span className="text-muted-foreground">{v.description}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">How to Run Locally</h2>
-                <ol className="space-y-2 text-sm">
-                  {docs.runLocally.map((step, i) => (
-                    <li key={i} className="flex gap-2 text-muted-foreground">
-                      <span className="font-bold text-foreground">{i + 1}.</span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </CardContent>
-            </Card>
+            {docs.databaseSchema && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Database Schema</h2>
+                  <div className="space-y-3 text-sm">
+                    {Object.entries(docs.databaseSchema).map(([table, desc]) => (
+                      <div key={table}>
+                        <code className="text-xs bg-muted px-2 py-0.5 rounded-md font-bold">{table}</code>
+                        <p className="text-muted-foreground mt-1 ml-1">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

@@ -1,59 +1,118 @@
-import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import {
-  LayoutDashboard, Users, FileText, Palette, BookOpen, ArrowRight, TreePine
+  LayoutDashboard, Users, TrendingUp, Clock, ArrowRight, Loader2
 } from "lucide-react";
+import AdminLayout from "@/components/admin/admin-layout";
 
-const adminLinks = [
-  { title: "Leads", desc: "View and manage CRM leads and quote requests.", href: "/admin/leads", icon: Users },
-  { title: "CMS", desc: "Manage website content, pages, and blog posts.", href: "/admin/cms", icon: FileText },
-  { title: "Branding", desc: "Update brand colors, logo, and site-wide settings.", href: "/admin/branding", icon: Palette },
-  { title: "Docs Library", desc: "Technical documentation and developer reference.", href: "/admin/docs", icon: BookOpen },
-];
+interface Stats {
+  total: number;
+  newThisWeek: number;
+  pipeline: Record<string, number>;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  New: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  Contacted: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  Scheduled: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  Won: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  Lost: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+};
 
 export default function AdminDashboard() {
+  const { data: stats, isLoading } = useQuery<Stats>({
+    queryKey: ["/api/admin/leads/stats"],
+  });
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 gap-4">
-          <div className="flex items-center gap-2">
-            <TreePine className="h-6 w-6 text-primary" />
-            <span className="font-bold">BrushWhackers <span className="text-muted-foreground font-normal text-sm">Admin</span></span>
-          </div>
-          <Link href="/">
-            <Button variant="ghost" size="sm" data-testid="link-back-to-site">Back to Site</Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center gap-3 mb-8">
+    <AdminLayout>
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
           <LayoutDashboard className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold" data-testid="text-admin-title">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold" data-testid="text-admin-title">Dashboard</h1>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          {adminLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-admin-${link.title.toLowerCase()}`}>
-                <CardContent className="p-6 flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                    <link.icon className="h-5 w-5 text-primary" />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-3 gap-4 mb-8">
+              <Card data-testid="card-stat-total">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Total Leads</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold">{link.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{link.desc}</p>
-                    <span className="text-sm text-primary font-medium flex items-center gap-1 mt-3">
-                      Open <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
+                  <p className="text-3xl font-bold" data-testid="text-stat-total">{stats?.total || 0}</p>
                 </CardContent>
               </Card>
-            </Link>
-          ))}
-        </div>
+
+              <Card data-testid="card-stat-new-week">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">New This Week</span>
+                  </div>
+                  <p className="text-3xl font-bold" data-testid="text-stat-new-week">{stats?.newThisWeek || 0}</p>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-stat-response">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Avg Response</span>
+                  </div>
+                  <p className="text-3xl font-bold" data-testid="text-stat-response">&lt; 24h</p>
+                  <p className="text-xs text-muted-foreground mt-1">Target response time</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="mb-8">
+              <CardContent className="p-5">
+                <h2 className="text-lg font-semibold mb-4">Pipeline Overview</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {["New", "Contacted", "Scheduled", "Won", "Lost"].map((status) => (
+                    <div
+                      key={status}
+                      className="text-center p-3 rounded-md bg-muted/30"
+                      data-testid={`pipeline-${status.toLowerCase()}`}
+                    >
+                      <p className="text-2xl font-bold">{stats?.pipeline[status] || 0}</p>
+                      <Badge
+                        variant="outline"
+                        className={`mt-1 text-xs no-default-hover-elevate no-default-active-elevate ${STATUS_COLORS[status] || ""}`}
+                      >
+                        {status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Link href="/admin/leads">
+                <Button className="gap-2" data-testid="button-view-all-leads">
+                  View All Leads <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

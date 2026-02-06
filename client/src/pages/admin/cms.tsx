@@ -1,7 +1,7 @@
-import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TreePine, ArrowLeft, FileText, Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
+import AdminLayout from "@/components/admin/admin-layout";
 
 const pages = [
   { name: "Home", path: "/", status: "Published" },
@@ -13,23 +13,8 @@ const pages = [
 
 export default function AdminCMS() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 gap-4">
-          <div className="flex items-center gap-2">
-            <TreePine className="h-6 w-6 text-primary" />
-            <span className="font-bold">BrushWhackers <span className="text-muted-foreground font-normal text-sm">Admin</span></span>
-          </div>
-          <Link href="/">
-            <Button variant="ghost" size="sm">Back to Site</Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Link href="/admin" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
-        </Link>
+    <AdminLayout>
+      <div className="p-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div className="flex items-center gap-3">
             <FileText className="h-6 w-6 text-primary" />
@@ -58,9 +43,9 @@ export default function AdminCMS() {
         </div>
 
         <p className="text-xs text-muted-foreground mt-4">
-          This is a shell view. CMS functionality will be fully implemented in a future phase.
+          CMS functionality will be fully implemented in a future phase.
         </p>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
