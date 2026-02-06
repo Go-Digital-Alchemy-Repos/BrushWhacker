@@ -28,7 +28,8 @@ import {
   GripVertical, Plus, Trash2, Copy, Save, Eye, ArrowLeft,
   Settings, Search, ChevronDown, Type, Image, Layout, Loader2,
   Monitor, Tablet, Smartphone, ShieldCheck, AlertTriangle,
-  CheckCircle2, ClipboardCheck, ExternalLink, Link2, ImageIcon, Hash
+  CheckCircle2, ClipboardCheck, ExternalLink, Link2, ImageIcon, Hash,
+  History, RotateCcw
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
@@ -223,6 +224,8 @@ export default function CmsPageBuilder() {
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string>("");
   const [showChecklist, setShowChecklist] = useState(false);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+  const [restoreConfirmId, setRestoreConfirmId] = useState<string | null>(null);
+  const [revisionMessage, setRevisionMessage] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -236,6 +239,78 @@ export default function CmsPageBuilder() {
   const { data: existingPage, isLoading: pageLoading } = useQuery<CmsPage>({
     queryKey: ["/api/admin/cms/pages", editId],
     enabled: !!editId,
+  });
+
+  interface PageRevision {
+    id: string;
+    pageId: string;
+    createdAt: string;
+    createdBy: string | null;
+    message: string | null;
+    snapshot: Record<string, any>;
+  }
+
+  const { data: revisions = [], isLoading: revisionsLoading } = useQuery<PageRevision[]>({
+    queryKey: ["/api/admin/cms/pages", editId, "revisions"],
+    enabled: !!editId,
+  });
+
+  const createRevisionMutation = useMutation({
+    mutationFn: async (msg?: string) => {
+      const res = await apiRequest("POST", `/api/admin/cms/pages/${editId}/revisions`, {
+        message: msg || undefined,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/pages", editId, "revisions"] });
+      toast({ title: "Revision saved" });
+      setRevisionMessage("");
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "Failed to save revision", variant: "destructive" });
+    },
+  });
+
+  const restoreRevisionMutation = useMutation({
+    mutationFn: async (revId: string) => {
+      const res = await apiRequest("POST", `/api/admin/cms/pages/${editId}/revisions/${revId}/restore`);
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/pages", editId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/pages", editId, "revisions"] });
+      setTitle(data.title);
+      setSlug(data.slug);
+      setSlugManual(true);
+      setDescription(data.description || "");
+      setStatus(data.status);
+      setBlocks(Array.isArray(data.blocks) ? data.blocks as BlockInstance[] : []);
+      const seo = (data.seo || {}) as Record<string, any>;
+      setSeoTitle(seo.title || "");
+      setMetaDescription(seo.metaDescription || seo.description || "");
+      setOgTitle(seo.ogTitle || seo.og?.title || "");
+      setOgDescription(seo.ogDescription || seo.og?.description || "");
+      setOgImage(seo.ogImage || seo.og?.image || "");
+      setRestoreConfirmId(null);
+      const restoredSnapshot = JSON.stringify({
+        title: data.title,
+        slug: data.slug,
+        description: data.description || "",
+        status: data.status,
+        blocks: Array.isArray(data.blocks) ? data.blocks : [],
+        seoTitle: seo.title || "",
+        metaDescription: seo.metaDescription || seo.description || "",
+        ogTitle: seo.ogTitle || seo.og?.title || "",
+        ogDescription: seo.ogDescription || seo.og?.description || "",
+        ogImage: seo.ogImage || seo.og?.image || "",
+      });
+      setLastSavedSnapshot(restoredSnapshot);
+      toast({ title: "Page restored to revision" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "Failed to restore revision", variant: "destructive" });
+    },
   });
 
   useEffect(() => {
@@ -786,6 +861,11 @@ export default function CmsPageBuilder() {
                     <TabsTrigger value="checklist" className="flex-1" data-testid="tab-checklist">
                       Check
                     </TabsTrigger>
+                    {editId && (
+                      <TabsTrigger value="revisions" className="flex-1" data-testid="tab-revisions">
+                        <History className="h-3.5 w-3.5" />
+                      </TabsTrigger>
+                    )}
                   </TabsList>
                 </div>
 
@@ -962,9 +1042,120 @@ export default function CmsPageBuilder() {
                     </div>
                   )}
                 </TabsContent>
+
+                {editId && (
+                  <TabsContent value="revisions" className="flex-1 overflow-y-auto p-3 mt-0 space-y-3">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                        <History className="h-4 w-4" />
+                        Revisions
+                      </h3>
+                      <Badge variant="secondary" className="text-xs">{revisions.length}</Badge>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Revision note (optional)"
+                        value={revisionMessage}
+                        onChange={(e) => setRevisionMessage(e.target.value)}
+                        className="text-xs"
+                        data-testid="input-revision-message"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-1.5"
+                        onClick={() => createRevisionMutation.mutate(revisionMessage)}
+                        disabled={createRevisionMutation.isPending}
+                        data-testid="button-save-revision"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                        {createRevisionMutation.isPending ? "Saving..." : "Save Revision"}
+                      </Button>
+                    </div>
+
+                    <div className="border-t pt-3 space-y-2">
+                      {revisionsLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : revisions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-4">
+                          No revisions yet. Save a revision to create a snapshot of the current page state.
+                        </p>
+                      ) : (
+                        revisions.map((rev) => {
+                          const snap = rev.snapshot as Record<string, any>;
+                          const blockCount = Array.isArray(snap.blocks) ? snap.blocks.length : 0;
+                          const date = new Date(rev.createdAt);
+                          return (
+                            <Card key={rev.id} className="overflow-visible" data-testid={`card-revision-${rev.id}`}>
+                              <CardContent className="p-3 space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-medium truncate" data-testid={`text-revision-message-${rev.id}`}>
+                                      {rev.message || "Manual save"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </p>
+                                  </div>
+                                  <Badge variant="secondary" className="text-xs shrink-0">
+                                    {snap.status || "draft"}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <span>{blockCount} block{blockCount !== 1 ? "s" : ""}</span>
+                                  <span className="truncate" title={snap.slug}>/{snap.slug}</span>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full gap-1.5"
+                                  onClick={() => setRestoreConfirmId(rev.id)}
+                                  data-testid={`button-restore-revision-${rev.id}`}
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                  Restore
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
               </Tabs>
             </aside>
           </div>
+
+          <Dialog open={!!restoreConfirmId} onOpenChange={(open) => { if (!open) setRestoreConfirmId(null); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Restore revision?</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                This will replace the current page content with the selected revision snapshot.
+                The current state will not be saved automatically — save a revision first if you want to preserve it.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setRestoreConfirmId(null)} data-testid="button-cancel-restore">
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (restoreConfirmId) restoreRevisionMutation.mutate(restoreConfirmId);
+                  }}
+                  disabled={restoreRevisionMutation.isPending}
+                  data-testid="button-confirm-restore"
+                >
+                  {restoreRevisionMutation.isPending ? "Restoring..." : "Restore"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <DragOverlay>
             {activeDragId && activeDragSource === "canvas" && activeDragBlock ? (

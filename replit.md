@@ -113,6 +113,9 @@ shared/
 - `GET /api/admin/cms/media` - List media (pagination: page, pageSize, search)
 - `PATCH /api/admin/cms/media/:id` - Update media metadata (alt, title, tags)
 - `DELETE /api/admin/cms/media/:id` - Delete media (removes file from disk)
+- `GET /api/admin/cms/pages/:id/revisions` - List page revision history
+- `POST /api/admin/cms/pages/:id/revisions` - Create revision snapshot
+- `POST /api/admin/cms/pages/:id/revisions/:revId/restore` - Restore page from revision
 
 ## Branding System
 - **site_settings table**: Single-row table stores all branding values

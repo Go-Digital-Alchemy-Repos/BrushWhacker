@@ -569,5 +569,103 @@ All other file types are rejected with a 400 error.
       updatedAt: now,
       tags: ["security", "upload", "validation", "rate-limiting"],
     },
+    {
+      category: "CMS",
+      title: "Page Revisions & Rollback",
+      bodyMarkdown: `Page versioning lets admins create, view, and restore revision snapshots of CMS pages.
+
+**Database Table:** \`cms_page_revisions\`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID PK | Revision identifier |
+| pageId | UUID FK | References cms_pages.id |
+| createdAt | timestamp | When the revision was saved |
+| createdBy | text | Who created the revision (default: "admin") |
+| message | text | Optional note (e.g. "Updated hero + SEO") |
+| snapshot | JSONB | Full page snapshot (title, slug, blocks, seo, status, templateId, pageType, description) |
+
+**API Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | \`/api/admin/cms/pages/:id/revisions\` | List all revisions for a page (newest first) |
+| POST | \`/api/admin/cms/pages/:id/revisions\` | Create a revision snapshot of current page state |
+| POST | \`/api/admin/cms/pages/:id/revisions/:revId/restore\` | Restore page content from a revision |
+
+**Create Revision Request:**
+\`\`\`json
+{
+  "message": "Updated hero section",
+  "createdBy": "admin"
+}
+\`\`\`
+Both fields are optional. The snapshot is built automatically from the current page state.
+
+**Restore Behavior:**
+- Replaces page title, slug, description, blocks, SEO, templateId, and status with the revision snapshot
+- The page \`updatedAt\` is refreshed to the current time
+- Published state is restored as-is from the snapshot (if the snapshot had status "draft", the page becomes draft again)
+- No new revision is auto-created on restore — admin can manually save one before restoring
+
+**Auto-Revision on Publish:**
+When a page status changes from draft to published via the PATCH endpoint, a revision is automatically saved with the message "Auto-saved before publish".
+
+**Retention Policy:**
+- Maximum 50 revisions per page
+- After creating a new revision, the system prunes (deletes) the oldest revisions beyond the limit
+- Pruning happens in the POST /revisions endpoint and in the auto-save on publish flow
+
+**UI Integration:**
+The page builder's right panel includes a "Revisions" tab (history icon) that shows:
+- Revision count badge
+- "Save Revision" button with optional message input
+- Chronological list of revisions with date, message, status, block count, and slug
+- Restore button on each revision with a confirmation dialog
+- Restore replaces all page fields in the editor immediately`,
+      updatedAt: now,
+      tags: ["cms", "revisions", "versioning", "rollback", "history"],
+    },
+    {
+      category: "Security",
+      title: "Revision Data Sensitivity",
+      bodyMarkdown: `This document describes the data stored in CMS page revision snapshots and security considerations.
+
+**What Is Stored:**
+Each revision snapshot is a JSONB object containing:
+- \`title\` — Page title (string)
+- \`slug\` — URL slug (string)
+- \`description\` — Page description (string, nullable)
+- \`status\` — Draft or published state (string)
+- \`pageType\` — Page type classification (string)
+- \`templateId\` — Template UUID reference (string, nullable)
+- \`blocks\` — Array of block instances with all property values
+- \`seo\` — SEO metadata object (title, metaDescription, og tags)
+
+**Data Sensitivity:**
+- Block content may include user-generated text, image URLs, link targets, and inline styles
+- SEO data may contain marketing copy and social media metadata
+- No authentication credentials, passwords, or API keys are stored in snapshots
+- Image URLs in blocks reference media library assets or external URLs — no binary data is stored
+
+**Access Control:**
+- All revision endpoints require admin authentication (requireAdmin middleware)
+- Revisions are scoped to a page via pageId — cross-page access is prevented
+- The restore endpoint validates that the revision belongs to the target page before applying
+
+**Retention:**
+- Revisions are automatically pruned to keep the last 50 per page
+- Deleted revisions are permanently removed (no soft delete)
+- When a page is deleted, all its revisions are cascade-deleted via the pageId relationship
+
+**No PII Stored:**
+Revision snapshots contain only CMS content data. They do not store:
+- User session tokens or cookies
+- Admin passwords or credentials
+- Visitor analytics or tracking data
+- Customer/lead personal information`,
+      updatedAt: now,
+      tags: ["security", "revisions", "data-privacy", "access-control"],
+    },
   ];
 }
