@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { STOCK_IMAGES } from "@/lib/stock-images";
 import { CheckCircle2, ArrowRight, HelpCircle, Clock, Zap, Star, Layers } from "lucide-react";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
@@ -110,14 +111,28 @@ export default function Pricing() {
 
   return (
     <SiteLayout>
+      <section className="relative overflow-hidden" data-testid="pricing-hero-section">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${STOCK_IMAGES.aerialClearing})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/50" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-pricing-title">
+            Simple, Straightforward Pricing
+          </h1>
+          <p className="mt-4 text-gray-300 max-w-2xl mx-auto text-lg">
+            Final pricing depends on access, vegetation density, terrain, and disposal needs. Your quote confirms exact pricing for your specific property. Serving Charlotte, Mecklenburg County, and surrounding areas.
+          </p>
+        </div>
+      </section>
+
       <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" data-testid="text-pricing-title">
-              Simple, Straightforward Pricing
-            </h1>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-lg">
-              Final pricing depends on access, vegetation density, terrain, and disposal needs. Your quote confirms exact pricing for your specific property. Serving Charlotte, Mecklenburg County, and surrounding areas.
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Pricing Tiers</h2>
+            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
+              Choose the option that best fits your project size and needs.
             </p>
           </div>
 
