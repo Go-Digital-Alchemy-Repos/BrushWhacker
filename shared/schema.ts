@@ -165,7 +165,7 @@ export const siteSettings = pgTable("site_settings", {
   logoUrl: text("logo_url").notNull().default("/images/logo.png"),
   primaryColor: text("primary_color").notNull().default("24 97% 46%"),
   secondaryColor: text("secondary_color").notNull().default("137 38% 21%"),
-  accentColor: text("accent_color").notNull().default("215 25% 40%"),
+  accentColor: text("accent_color").notNull().default("215 15% 45%"),
   fontFamily: text("font_family").notNull().default("Inter"),
   ctaText: text("cta_text").notNull().default("Get a Fast Quote"),
   socialFacebook: text("social_facebook"),

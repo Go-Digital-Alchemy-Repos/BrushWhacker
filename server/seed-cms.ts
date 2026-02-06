@@ -329,7 +329,7 @@ const THEME_PRESETS = [
       colors: { 
         primary: "24 97% 46%", 
         secondary: "137 38% 21%", 
-        accent: "215 25% 40%", 
+        accent: "215 15% 45%", 
         bg: "210 20% 98%", 
         surface: "0 0% 100%", 
         text: "215 25% 15%" 
