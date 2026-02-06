@@ -320,13 +320,20 @@ const SYSTEM_BLOCKS = [
 
 const THEME_PRESETS = [
   {
-    key: "earth-pro",
-    name: "Earth Pro",
-    description: "Warm earth tones with brown and green accents, matching the current Forestry Boss brand.",
+    key: "forestry-pro",
+    name: "Forestry Pro",
+    description: "Brand colors from the Forestry Boss logo: Green, Orange, and Slate.",
     isSystem: true,
     isActive: true,
     tokens: {
-      colors: { primary: "28 65% 42%", secondary: "85 35% 38%", accent: "36 70% 50%", bg: "40 20% 97%", surface: "40 15% 100%", text: "30 10% 15%" },
+      colors: { 
+        primary: "14 90% 50%", 
+        secondary: "155 45% 25%", 
+        accent: "215 25% 40%", 
+        bg: "210 20% 98%", 
+        surface: "0 0% 100%", 
+        text: "215 25% 15%" 
+      },
       font: { family: "Inter", headingsWeight: "700", bodyWeight: "400" },
       radius: { card: "0.5rem", button: "0.375rem" },
       shadow: { card: "0 1px 3px rgba(0,0,0,0.1)", button: "0 1px 2px rgba(0,0,0,0.05)" },
