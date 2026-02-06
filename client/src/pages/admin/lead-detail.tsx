@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,12 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Mail, Phone, MapPin, Calendar,
-  Clock, Tag, MessageSquare, Activity, Send
+  Clock, Tag, MessageSquare, Activity, Send, FolderPlus
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import AdminLayout from "@/components/admin/admin-layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +74,11 @@ export default function LeadDetail() {
   const leadId = parseInt(params.id || "0");
   const { toast } = useToast();
   const [noteText, setNoteText] = useState("");
+  const [, navigate] = useLocation();
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertTitle, setConvertTitle] = useState("");
+  const [convertSlug, setConvertSlug] = useState("");
+  const [convertFeatured, setConvertFeatured] = useState(false);
 
   const { data: lead, isLoading } = useQuery<Lead>({
     queryKey: ["/api/admin/leads", leadId],
@@ -111,6 +120,44 @@ export default function LeadDetail() {
       toast({ title: "Note added" });
     },
   });
+
+  const convertMutation = useMutation({
+    mutationFn: async (data: { title: string; slug: string; featured: boolean }) => {
+      const res = await apiRequest("POST", `/api/admin/projects/from-lead/${leadId}`, data);
+      if (res.status === 409) {
+        const body = await res.json();
+        throw new Error(`CONFLICT:${body.projectId}`);
+      }
+      if (!res.ok) throw new Error("Failed to convert");
+      return res.json();
+    },
+    onSuccess: (project: any) => {
+      toast({ title: "Project created from lead" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/projects"] });
+      navigate(`/admin/crm/projects`);
+    },
+    onError: (err: Error) => {
+      if (err.message.startsWith("CONFLICT:")) {
+        toast({
+          title: "Project already exists",
+          description: "This lead has already been converted to a project.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    },
+  });
+
+  const openConvertModal = () => {
+    if (lead) {
+      const defaultTitle = `${lead.fullName} - ${(lead.servicesNeeded || []).map(s => SERVICES_MAP[s] || s).join(", ")}`;
+      setConvertTitle(defaultTitle);
+      setConvertSlug(defaultTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+      setConvertFeatured(false);
+      setConvertOpen(true);
+    }
+  };
 
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +224,9 @@ export default function LeadDetail() {
             >
               {lead.status}
             </Badge>
+            <Button variant="outline" onClick={openConvertModal} data-testid="button-convert-to-project">
+              <FolderPlus className="h-4 w-4 mr-2" />Convert to Project
+            </Button>
           </div>
         </div>
 
@@ -365,6 +415,41 @@ export default function LeadDetail() {
           </div>
         </div>
       </div>
+      <Dialog open={convertOpen} onOpenChange={setConvertOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Convert Lead to Project</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            convertMutation.mutate({ title: convertTitle, slug: convertSlug, featured: convertFeatured });
+          }} className="space-y-4">
+            <div>
+              <Label htmlFor="convert-title">Project Title</Label>
+              <Input id="convert-title" value={convertTitle} onChange={(e) => {
+                setConvertTitle(e.target.value);
+                setConvertSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+              }} required data-testid="input-convert-title" />
+            </div>
+            <div>
+              <Label htmlFor="convert-slug">URL Slug</Label>
+              <Input id="convert-slug" value={convertSlug} onChange={(e) => setConvertSlug(e.target.value)} required data-testid="input-convert-slug" />
+              <p className="text-xs text-muted-foreground mt-1">/projects/{convertSlug}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={convertFeatured} onCheckedChange={setConvertFeatured} id="convert-featured" data-testid="switch-convert-featured" />
+              <Label htmlFor="convert-featured">Mark as Featured</Label>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setConvertOpen(false)} data-testid="button-convert-cancel">Cancel</Button>
+              <Button type="submit" disabled={convertMutation.isPending} data-testid="button-convert-submit">
+                {convertMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Create Project
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

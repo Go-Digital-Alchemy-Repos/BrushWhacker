@@ -152,6 +152,12 @@ export default function Home() {
                 </Button>
               </a>
             </div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-4 text-white/70 text-sm" data-testid="hero-trust-badges">
+              <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Local</span>
+              <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Insured</span>
+              <span className="flex items-center gap-1.5"><HardHat className="h-3.5 w-3.5" /> Pro Equipment</span>
+              <span className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> Fast Quotes</span>
+            </div>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-24" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />

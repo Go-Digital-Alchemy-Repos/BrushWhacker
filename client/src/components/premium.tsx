@@ -1,5 +1,6 @@
 import type { ReactNode, ElementType } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface SectionProps {
   children: ReactNode;
@@ -106,5 +107,80 @@ export function TrustRow({ items, className }: TrustBadgeProps) {
         </div>
       ))}
     </div>
+  );
+}
+
+interface CtaBandProps {
+  headline: string;
+  description?: string;
+  primaryCta?: { text: string; href: string };
+  secondaryCta?: { text: string; href: string };
+  variant?: "primary" | "image";
+  backgroundImage?: string;
+  className?: string;
+  "data-testid"?: string;
+}
+
+export function CtaBand({
+  headline,
+  description,
+  primaryCta,
+  secondaryCta,
+  variant = "primary",
+  backgroundImage,
+  className,
+  ...props
+}: CtaBandProps) {
+  if (variant === "image" && backgroundImage) {
+    return (
+      <section className={cn("relative overflow-hidden", className)} data-testid={props["data-testid"]}>
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${backgroundImage})` }}
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.45) 100%)" }} />
+        <div className="relative max-w-3xl mx-auto px-6 py-20 sm:py-28 text-center text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">{headline}</h2>
+          {description && <p className="mt-4 text-white/80 max-w-xl mx-auto text-lg">{description}</p>}
+          {(primaryCta || secondaryCta) && (
+            <div className="flex flex-wrap justify-center gap-3 mt-8">
+              {primaryCta && (
+                <a href={primaryCta.href}>
+                  <Button size="lg">{primaryCta.text}</Button>
+                </a>
+              )}
+              {secondaryCta && (
+                <a href={secondaryCta.href}>
+                  <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm text-white border-white/25">{secondaryCta.text}</Button>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className={cn("py-16 px-6 bg-primary text-primary-foreground", className)} data-testid={props["data-testid"]}>
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="text-2xl md:text-3xl font-bold mb-4">{headline}</h2>
+        {description && <p className="mb-6 opacity-90">{description}</p>}
+        {(primaryCta || secondaryCta) && (
+          <div className="flex flex-wrap justify-center gap-3">
+            {primaryCta && (
+              <a href={primaryCta.href}>
+                <Button variant="secondary">{primaryCta.text}</Button>
+              </a>
+            )}
+            {secondaryCta && (
+              <a href={secondaryCta.href}>
+                <Button variant="link" className="text-primary-foreground underline underline-offset-4">{secondaryCta.text}</Button>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

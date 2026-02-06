@@ -34,6 +34,8 @@ import AdminCmsRedirects from "@/pages/admin/cms-redirects";
 import AdminCrmProjects from "@/pages/admin/crm-projects";
 import AdminCmsTestimonials from "@/pages/admin/cms-testimonials";
 import CityLanding from "@/pages/city-landing";
+import Projects from "@/pages/projects";
+import ProjectDetail from "@/pages/project-detail";
 
 function Router() {
   return (
@@ -46,6 +48,8 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/quote" component={Quote} />
       <Route path="/areas/:city" component={CityLanding} />
+      <Route path="/projects" component={Projects} />
+      <Route path="/projects/:slug" component={ProjectDetail} />
       <Route path="/p/:slug" component={CmsPageView} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
