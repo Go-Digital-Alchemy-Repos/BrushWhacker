@@ -55,13 +55,13 @@ export default function AdminBranding() {
   });
 
   const [form, setForm] = useState({
-    companyName: "Brush Boss",
+    companyName: "Forestry Boss",
     phone: "(704) 608-5783",
-    email: "info@brushboss.com",
+    email: "info@forestryboss.com",
     serviceArea: "Charlotte, NC & Surrounding Areas",
-    logoUrl: "",
-    primaryColor: "#b07430",
-    secondaryColor: "#5a7a3a",
+    logoUrl: "/images/logo.png",
+    primaryColor: "#e76003",
+    secondaryColor: "#21492c",
     fontFamily: "Inter",
     ctaText: "Get a Fast Quote",
     socialFacebook: "",
