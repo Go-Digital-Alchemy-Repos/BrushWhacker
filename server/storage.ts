@@ -11,8 +11,10 @@ import {
   type CmsMediaItem, type InsertCmsMedia,
   type ThemePreset, type InsertThemePreset,
   type CmsRedirect, type InsertCmsRedirect,
+  type CmsPageRevision,
   leads, leadNotes, leadActivity, blogPosts, siteSettings,
   cmsPages, cmsTemplates, cmsBlockLibrary, cmsMedia, themePresets, cmsRedirects,
+  cmsPageRevisions,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -85,6 +87,10 @@ export interface IStorage {
   getCmsRedirects(): Promise<CmsRedirect[]>;
   createCmsRedirect(data: InsertCmsRedirect): Promise<CmsRedirect>;
   deleteCmsRedirect(id: string): Promise<boolean>;
+  getPageRevisions(pageId: string): Promise<CmsPageRevision[]>;
+  getPageRevision(id: string): Promise<CmsPageRevision | undefined>;
+  createPageRevision(data: { pageId: string; createdBy?: string; message?: string; snapshot: Record<string, any> }): Promise<CmsPageRevision>;
+  prunePageRevisions(pageId: string, keep: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -492,6 +498,54 @@ export class DatabaseStorage implements IStorage {
   async deleteCmsRedirect(id: string): Promise<boolean> {
     const result = await db.delete(cmsRedirects).where(eq(cmsRedirects.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getPageRevisions(pageId: string): Promise<CmsPageRevision[]> {
+    return db
+      .select()
+      .from(cmsPageRevisions)
+      .where(eq(cmsPageRevisions.pageId, pageId))
+      .orderBy(desc(cmsPageRevisions.createdAt));
+  }
+
+  async getPageRevision(id: string): Promise<CmsPageRevision | undefined> {
+    const [rev] = await db.select().from(cmsPageRevisions).where(eq(cmsPageRevisions.id, id));
+    return rev;
+  }
+
+  async createPageRevision(data: {
+    pageId: string;
+    createdBy?: string;
+    message?: string;
+    snapshot: Record<string, any>;
+  }): Promise<CmsPageRevision> {
+    const [created] = await db
+      .insert(cmsPageRevisions)
+      .values({
+        pageId: data.pageId,
+        createdBy: data.createdBy || null,
+        message: data.message || null,
+        snapshot: data.snapshot,
+      })
+      .returning();
+    return created;
+  }
+
+  async prunePageRevisions(pageId: string, keep: number): Promise<number> {
+    const all = await db
+      .select({ id: cmsPageRevisions.id })
+      .from(cmsPageRevisions)
+      .where(eq(cmsPageRevisions.pageId, pageId))
+      .orderBy(desc(cmsPageRevisions.createdAt));
+
+    if (all.length <= keep) return 0;
+
+    const toDelete = all.slice(keep).map((r) => r.id);
+    const result = await db
+      .delete(cmsPageRevisions)
+      .where(inArray(cmsPageRevisions.id, toDelete))
+      .returning();
+    return result.length;
   }
 }
 
