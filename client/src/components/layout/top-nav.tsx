@@ -29,12 +29,12 @@ export function TopNav() {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b" data-testid="top-nav">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          <Link href="/" className="flex items-center gap-2 shrink-0" data-testid="link-home-logo">
+        <div className="flex items-center justify-between min-h-24 py-2 gap-4">
+          <Link href="/" className="flex items-center gap-2 shrink-0 py-1" data-testid="link-home-logo">
             {settings.logoUrl ? (
-              <img src={settings.logoUrl} alt={settings.companyName} className="h-36 w-36 object-contain" />
+              <img src={settings.logoUrl} alt={settings.companyName} className="h-20 w-auto object-contain" />
             ) : (
-              <TreePine className="h-36 w-36 text-primary" />
+              <TreePine className="h-10 w-10 text-primary" />
             )}
           </Link>
 
