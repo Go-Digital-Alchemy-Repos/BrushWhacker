@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { requireAdmin } from "./auth";
 import {
@@ -8,6 +9,17 @@ import {
   insertCmsMediaSchema,
   insertCmsRedirectSchema,
 } from "@shared/schema";
+
+const previewTokens = new Map<string, { pageId: string; expiresAt: number }>();
+
+function cleanExpiredTokens() {
+  const now = Date.now();
+  for (const [token, data] of previewTokens) {
+    if (data.expiresAt < now) previewTokens.delete(token);
+  }
+}
+
+setInterval(cleanExpiredTokens, 60_000);
 
 export function registerCmsRoutes(app: Express) {
   app.get("/api/admin/cms/pages", requireAdmin, async (req, res) => {
@@ -262,11 +274,36 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
+  app.post("/api/admin/cms/pages/:id/preview-token", requireAdmin, async (req, res) => {
+    try {
+      const page = await storage.getCmsPage(req.params.id);
+      if (!page) return res.status(404).json({ error: "Page not found" });
+      cleanExpiredTokens();
+      const token = crypto.randomBytes(32).toString("hex");
+      previewTokens.set(token, {
+        pageId: page.id,
+        expiresAt: Date.now() + 15 * 60 * 1000,
+      });
+      return res.json({ token, slug: page.slug, expiresIn: 900 });
+    } catch (err) {
+      console.error("Failed to create preview token:", err);
+      return res.status(500).json({ error: "Failed to create preview token" });
+    }
+  });
+
   app.get("/api/public/pages/:slug", async (req, res) => {
     try {
       const page = await storage.getCmsPageBySlug(req.params.slug);
-      if (!page || page.status !== "published") {
-        return res.status(404).json({ error: "Page not found" });
+      if (!page) return res.status(404).json({ error: "Page not found" });
+
+      const previewToken = req.query.previewToken as string | undefined;
+      if (page.status !== "published") {
+        if (!previewToken) return res.status(404).json({ error: "Page not found" });
+        const tokenData = previewTokens.get(previewToken);
+        if (!tokenData || tokenData.pageId !== page.id || tokenData.expiresAt < Date.now()) {
+          return res.status(404).json({ error: "Page not found" });
+        }
+        return res.json({ ...page, _preview: true });
       }
       return res.json(page);
     } catch (err) {

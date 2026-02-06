@@ -26,7 +26,9 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   GripVertical, Plus, Trash2, Copy, Save, Eye, ArrowLeft,
-  Settings, Search, ChevronDown, Type, Image, Layout, Loader2
+  Settings, Search, ChevronDown, Type, Image, Layout, Loader2,
+  Monitor, Tablet, Smartphone, ShieldCheck, AlertTriangle,
+  CheckCircle2, ClipboardCheck, ExternalLink, Link2, ImageIcon, Hash
 } from "lucide-react";
 import type { BlockInstance, CmsPage, CmsBlock } from "@shared/schema";
 
@@ -39,15 +41,22 @@ function slugify(text: string): string {
     .trim();
 }
 
+const INLINE_EDITABLE: Record<string, string[]> = {
+  hero: ["headline", "subheadline"],
+  cta_band: ["heading", "buttonText"],
+  rich_text: ["content"],
+};
+
 interface SortableBlockProps {
   block: BlockInstance;
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  onInlineEdit: (key: string, value: string) => void;
 }
 
-function SortableBlock({ block, isSelected, onSelect, onDelete, onDuplicate }: SortableBlockProps) {
+function SortableBlock({ block, isSelected, onSelect, onDelete, onDuplicate, onInlineEdit }: SortableBlockProps) {
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging
   } = useSortable({ id: block.id });
@@ -58,11 +67,14 @@ function SortableBlock({ block, isSelected, onSelect, onDelete, onDuplicate }: S
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const propsPreview = Object.entries(block.props || {})
-    .filter(([, v]) => typeof v === "string")
-    .slice(0, 2)
-    .map(([k, v]) => `${k}: ${String(v).slice(0, 40)}${String(v).length > 40 ? "..." : ""}`)
-    .join(" | ");
+  const inlineFields = INLINE_EDITABLE[block.type] || [];
+  const propsPreview = inlineFields.length === 0
+    ? Object.entries(block.props || {})
+        .filter(([, v]) => typeof v === "string")
+        .slice(0, 2)
+        .map(([k, v]) => `${k}: ${String(v).slice(0, 40)}${String(v).length > 40 ? "..." : ""}`)
+        .join(" | ")
+    : "";
 
   return (
     <div
@@ -94,11 +106,37 @@ function SortableBlock({ block, isSelected, onSelect, onDelete, onDuplicate }: S
               {block.type}
             </Badge>
           </div>
-          {propsPreview && (
-            <p className="text-xs text-muted-foreground mt-1 truncate">
-              {propsPreview}
-            </p>
-          )}
+          {inlineFields.length > 0 ? (
+            <div className="mt-2 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+              {inlineFields.map((fieldKey) => {
+                const val = typeof block.props[fieldKey] === "string" ? block.props[fieldKey] : "";
+                const isLong = fieldKey === "content" || (val && val.length > 60);
+                return isLong ? (
+                  <textarea
+                    key={fieldKey}
+                    value={val}
+                    onChange={(e) => onInlineEdit(fieldKey, e.target.value)}
+                    placeholder={fieldKey}
+                    rows={2}
+                    className="w-full text-sm bg-transparent border border-dashed border-muted-foreground/30 rounded px-2 py-1 focus:outline-none focus:border-primary resize-none"
+                    data-testid={`inline-edit-${block.id}-${fieldKey}`}
+                  />
+                ) : (
+                  <input
+                    key={fieldKey}
+                    type="text"
+                    value={val}
+                    onChange={(e) => onInlineEdit(fieldKey, e.target.value)}
+                    placeholder={fieldKey}
+                    className="w-full text-sm bg-transparent border-b border-dashed border-muted-foreground/30 px-1 py-0.5 focus:outline-none focus:border-primary"
+                    data-testid={`inline-edit-${block.id}-${fieldKey}`}
+                  />
+                );
+              })}
+            </div>
+          ) : propsPreview ? (
+            <p className="text-xs text-muted-foreground mt-1 truncate">{propsPreview}</p>
+          ) : null}
         </div>
         <div className="flex items-center gap-0.5 shrink-0 invisible group-hover:visible">
           <Button
@@ -178,6 +216,11 @@ export default function CmsPageBuilder() {
   const [activeDragSource, setActiveDragSource] = useState<"canvas" | "library" | null>(null);
   const [activeLibraryBlock, setActiveLibraryBlock] = useState<CmsBlock | null>(null);
 
+  const [devicePreview, setDevicePreview] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string>("");
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -214,6 +257,110 @@ export default function CmsPageBuilder() {
       setSlug(slugify(title));
     }
   }, [title, slugManual]);
+
+  const currentSnapshot = useMemo(
+    () => JSON.stringify({ title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage }),
+    [title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage]
+  );
+
+  const hasUnsavedChanges = lastSavedSnapshot !== "" && currentSnapshot !== lastSavedSnapshot;
+  const isSaved = lastSavedSnapshot !== "" && currentSnapshot === lastSavedSnapshot;
+
+  useEffect(() => {
+    if (existingPage && editId && lastSavedSnapshot === "") {
+      setTimeout(() => {
+        setLastSavedSnapshot(JSON.stringify({
+          title: existingPage.title,
+          slug: existingPage.slug,
+          description: existingPage.description || "",
+          status: existingPage.status,
+          blocks: Array.isArray(existingPage.blocks) ? existingPage.blocks : [],
+          seoTitle: ((existingPage.seo as any)?.title || ""),
+          metaDescription: ((existingPage.seo as any)?.metaDescription || ""),
+          ogTitle: ((existingPage.seo as any)?.ogTitle || ""),
+          ogDescription: ((existingPage.seo as any)?.ogDescription || ""),
+          ogImage: ((existingPage.seo as any)?.ogImage || ""),
+        }));
+      }, 100);
+    }
+  }, [existingPage, editId, lastSavedSnapshot]);
+
+  function validateBlocks(): string[] {
+    const warnings: string[] = [];
+    const hasHeadline = blocks.some((b) =>
+      (b.type === "hero" && b.props.headline) || (b.type === "rich_text" && b.props.content)
+    );
+    if (!hasHeadline) warnings.push("Missing H1/headline: add a hero or rich_text block with content");
+
+    const hasCtaToQuote = blocks.some((b) => {
+      const props = b.props || {};
+      return Object.values(props).some((v) => typeof v === "string" && v.includes("/quote"));
+    });
+    if (!hasCtaToQuote) warnings.push("No CTA linking to /quote found on this page");
+
+    let missingAltCount = 0;
+    let invalidLinks: string[] = [];
+
+    for (const block of blocks) {
+      const props = block.props || {};
+
+      if (["hero", "image_banner"].includes(block.type)) {
+        if (!props.imageUrl) warnings.push(`Block "${block.meta?.label || block.type}": missing image URL`);
+        if (props.imageUrl && !props.imageAlt && !props.alt) {
+          missingAltCount++;
+        }
+      }
+
+      for (const [key, val] of Object.entries(props)) {
+        if (typeof val === "string" && (key.toLowerCase().includes("href") || key.toLowerCase().includes("url"))) {
+          if (val && !val.startsWith("/") && !val.startsWith("http") && !val.startsWith("mailto:") && !val.startsWith("tel:") && !val.startsWith("#")) {
+            invalidLinks.push(`Block "${block.meta?.label || block.type}": invalid link "${val}" in ${key}`);
+          }
+        }
+      }
+
+      const blockDef = libraryBlocks.find((lb) => lb.key === block.type);
+      if (blockDef?.schema) {
+        const schema = blockDef.schema as { fields?: Array<{ key: string; label: string; required?: boolean }> };
+        for (const field of schema.fields || []) {
+          if (field.required && !props[field.key]) {
+            warnings.push(`Block "${block.meta?.label || block.type}": required field "${field.label}" is empty`);
+          }
+        }
+      }
+    }
+
+    if (missingAltCount > 0) warnings.push(`${missingAltCount} image(s) missing alt text`);
+    invalidLinks.forEach((l) => warnings.push(l));
+
+    if (seoTitle && (seoTitle.length < 30 || seoTitle.length > 60)) {
+      warnings.push(`SEO title length: ${seoTitle.length} chars (recommended: 30-60)`);
+    }
+    if (!seoTitle && !title) warnings.push("Page has no title or SEO title");
+
+    if (metaDescription && (metaDescription.length < 50 || metaDescription.length > 160)) {
+      warnings.push(`Meta description length: ${metaDescription.length} chars (recommended: 50-160)`);
+    }
+    if (!metaDescription) warnings.push("Missing meta description");
+    if (!ogImage) warnings.push("Missing OG image for social sharing");
+
+    return warnings;
+  }
+
+  async function handlePreview() {
+    if (!editId) {
+      toast({ title: "Save the page first", description: "Preview requires a saved page", variant: "destructive" });
+      return;
+    }
+    try {
+      const res = await apiRequest("POST", `/api/admin/cms/pages/${editId}/preview-token`);
+      const data = await res.json();
+      const url = `/p/${data.slug}?previewToken=${data.token}`;
+      window.open(url, "_blank");
+    } catch (err: any) {
+      toast({ title: "Preview failed", description: err.message, variant: "destructive" });
+    }
+  }
 
   const selectedBlock = useMemo(
     () => blocks.find((b) => b.id === selectedBlockId) || null,
@@ -254,14 +401,19 @@ export default function CmsPageBuilder() {
         seo: { title: seoTitle, metaDescription, ogTitle, ogDescription, ogImage },
       };
       if (editId) {
-        return apiRequest("PATCH", `/api/admin/cms/pages/${editId}`, payload);
+        const res = await apiRequest("PATCH", `/api/admin/cms/pages/${editId}`, payload);
+        return res.json();
       }
-      return apiRequest("POST", "/api/admin/cms/pages", payload);
+      const res = await apiRequest("POST", "/api/admin/cms/pages", payload);
+      return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/pages"] });
-      toast({ title: editId ? "Page updated" : "Page created" });
-      navigate("/admin/cms/pages");
+      setLastSavedSnapshot(currentSnapshot);
+      toast({ title: editId ? "Page saved" : "Page created" });
+      if (!editId && data?.id) {
+        navigate(`/admin/cms/pages/${data.id}`);
+      }
     },
     onError: (err: any) => {
       toast({
@@ -412,7 +564,40 @@ export default function CmsPageBuilder() {
             </div>
           </div>
 
+          <div className="flex items-center gap-1 border rounded-md p-0.5" data-testid="device-switcher">
+            {([
+              { key: "desktop" as const, icon: Monitor, label: "Desktop" },
+              { key: "tablet" as const, icon: Tablet, label: "Tablet" },
+              { key: "mobile" as const, icon: Smartphone, label: "Mobile" },
+            ]).map(({ key, icon: Icon, label }) => (
+              <Button
+                key={key}
+                variant={devicePreview === key ? "default" : "ghost"}
+                size="icon"
+                onClick={() => setDevicePreview(key)}
+                title={label}
+                data-testid={`button-device-${key}`}
+              >
+                <Icon className="h-4 w-4" />
+              </Button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2">
+            {editId && (
+              <span className="text-xs px-2" data-testid="text-save-status">
+                {saveMutation.isPending ? (
+                  <span className="text-muted-foreground">Saving...</span>
+                ) : hasUnsavedChanges ? (
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">Unsaved changes</span>
+                ) : isSaved ? (
+                  <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> Saved
+                  </span>
+                ) : null}
+              </span>
+            )}
+
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-[120px]" data-testid="select-page-status">
                 <SelectValue />
@@ -422,6 +607,33 @@ export default function CmsPageBuilder() {
                 <SelectItem value="published">Published</SelectItem>
               </SelectContent>
             </Select>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                const w = validateBlocks();
+                setValidationWarnings(w);
+                setShowChecklist(true);
+                setShowRightPanel(true);
+                if (w.length === 0) toast({ title: "All checks passed" });
+                else toast({ title: `${w.length} warning(s) found`, variant: "destructive" });
+              }}
+              title="Validate Page"
+              data-testid="button-validate-page"
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePreview}
+              title="Preview page"
+              data-testid="button-preview-page"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
 
             <Button
               variant="ghost"
@@ -512,36 +724,45 @@ export default function CmsPageBuilder() {
             </aside>
 
             <div
-              className="flex-1 overflow-y-auto bg-muted/30 p-4"
+              className="flex-1 overflow-y-auto bg-muted/30 p-4 flex justify-center"
               data-testid="canvas-area"
             >
-              {blocks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <Layout className="h-12 w-12 text-muted-foreground/40 mb-3" />
-                  <p className="text-muted-foreground text-sm mb-1">No blocks added yet</p>
-                  <p className="text-xs text-muted-foreground">
-                    Drag blocks from the left panel or click the + button to add blocks
-                  </p>
-                </div>
-              ) : (
-                <SortableContext
-                  items={blocks.map((b) => b.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2 max-w-2xl mx-auto">
-                    {blocks.map((block) => (
-                      <SortableBlock
-                        key={block.id}
-                        block={block}
-                        isSelected={selectedBlockId === block.id}
-                        onSelect={() => setSelectedBlockId(block.id)}
-                        onDelete={() => deleteBlock(block.id)}
-                        onDuplicate={() => duplicateBlock(block.id)}
-                      />
-                    ))}
+              <div
+                className="w-full transition-all duration-300"
+                style={{
+                  maxWidth: devicePreview === "mobile" ? "375px" : devicePreview === "tablet" ? "768px" : "100%",
+                }}
+                data-testid={`canvas-viewport-${devicePreview}`}
+              >
+                {blocks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <Layout className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                    <p className="text-muted-foreground text-sm mb-1">No blocks added yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Drag blocks from the left panel or click the + button to add blocks
+                    </p>
                   </div>
-                </SortableContext>
-              )}
+                ) : (
+                  <SortableContext
+                    items={blocks.map((b) => b.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2 max-w-2xl mx-auto">
+                      {blocks.map((block) => (
+                        <SortableBlock
+                          key={block.id}
+                          block={block}
+                          isSelected={selectedBlockId === block.id}
+                          onSelect={() => setSelectedBlockId(block.id)}
+                          onDelete={() => deleteBlock(block.id)}
+                          onDuplicate={() => duplicateBlock(block.id)}
+                          onInlineEdit={(key, value) => updateBlockProp(block.id, key, value)}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                )}
+              </div>
             </div>
 
             <aside
@@ -550,7 +771,7 @@ export default function CmsPageBuilder() {
               }`}
               data-testid="panel-inspector"
             >
-              <Tabs defaultValue="block" className="flex flex-col h-full">
+              <Tabs defaultValue={showChecklist ? "checklist" : "block"} className="flex flex-col h-full">
                 <div className="border-b px-3 pt-2">
                   <TabsList className="w-full">
                     <TabsTrigger value="block" className="flex-1" data-testid="tab-block">
@@ -558,6 +779,9 @@ export default function CmsPageBuilder() {
                     </TabsTrigger>
                     <TabsTrigger value="seo" className="flex-1" data-testid="tab-seo">
                       SEO
+                    </TabsTrigger>
+                    <TabsTrigger value="checklist" className="flex-1" data-testid="tab-checklist">
+                      Check
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -642,6 +866,98 @@ export default function CmsPageBuilder() {
                       data-testid="input-seo-og-image"
                     />
                   </div>
+                </TabsContent>
+
+                <TabsContent value="checklist" className="flex-1 overflow-y-auto p-3 mt-0 space-y-3">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                      <ClipboardCheck className="h-4 w-4" />
+                      Content Checklist
+                    </h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setValidationWarnings(validateBlocks())}
+                      data-testid="button-run-checklist"
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <ChecklistItem
+                    label="Page title"
+                    status={title ? (title.length >= 10 ? "pass" : "warn") : "fail"}
+                    detail={title ? `${title.length} chars` : "Missing"}
+                  />
+                  <ChecklistItem
+                    label="SEO title (30-60 chars)"
+                    status={seoTitle ? (seoTitle.length >= 30 && seoTitle.length <= 60 ? "pass" : "warn") : "warn"}
+                    detail={seoTitle ? `${seoTitle.length} chars` : "Not set"}
+                  />
+                  <ChecklistItem
+                    label="Meta description (50-160)"
+                    status={metaDescription ? (metaDescription.length >= 50 && metaDescription.length <= 160 ? "pass" : "warn") : "fail"}
+                    detail={metaDescription ? `${metaDescription.length} chars` : "Missing"}
+                  />
+                  <ChecklistItem
+                    label="OG Image"
+                    status={ogImage ? "pass" : "warn"}
+                    detail={ogImage ? "Set" : "Missing for social sharing"}
+                  />
+                  <ChecklistItem
+                    label="H1/Headline present"
+                    status={blocks.some((b) => (b.type === "hero" && b.props.headline) || (b.type === "rich_text" && b.props.content)) ? "pass" : "fail"}
+                    detail={blocks.some((b) => b.type === "hero" && b.props.headline) ? "Hero headline found" : blocks.some((b) => b.type === "rich_text" && b.props.content) ? "Rich text found" : "No headline block"}
+                  />
+                  <ChecklistItem
+                    label="CTA to /quote"
+                    status={blocks.some((b) => Object.values(b.props || {}).some((v) => typeof v === "string" && v.includes("/quote"))) ? "pass" : "warn"}
+                    detail="Internal link to quote form"
+                  />
+                  <ChecklistItem
+                    label="Alt text coverage"
+                    status={(() => {
+                      const imgBlocks = blocks.filter((b) => ["hero", "image_banner"].includes(b.type) && b.props.imageUrl);
+                      if (imgBlocks.length === 0) return "pass";
+                      const missing = imgBlocks.filter((b) => !b.props.imageAlt && !b.props.alt).length;
+                      return missing === 0 ? "pass" : "fail";
+                    })()}
+                    detail={(() => {
+                      const imgBlocks = blocks.filter((b) => ["hero", "image_banner"].includes(b.type) && b.props.imageUrl);
+                      const missing = imgBlocks.filter((b) => !b.props.imageAlt && !b.props.alt).length;
+                      return missing > 0 ? `${missing} image(s) missing alt` : "All images have alt text";
+                    })()}
+                  />
+                  <ChecklistItem
+                    label="Link validation"
+                    status={(() => {
+                      for (const block of blocks) {
+                        for (const [key, val] of Object.entries(block.props || {})) {
+                          if (typeof val === "string" && (key.toLowerCase().includes("href") || key.toLowerCase().includes("url"))) {
+                            if (val && !val.startsWith("/") && !val.startsWith("http") && !val.startsWith("mailto:") && !val.startsWith("tel:") && !val.startsWith("#")) return "fail";
+                          }
+                        }
+                      }
+                      return "pass";
+                    })()}
+                    detail="All links use valid format"
+                  />
+
+                  {validationWarnings.length > 0 && (
+                    <div className="mt-4 pt-3 border-t">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Validation Warnings ({validationWarnings.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {validationWarnings.map((w, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                            <span className="text-muted-foreground">{w}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </aside>
@@ -898,6 +1214,24 @@ function BlockPropertyEditor({ block, blockDef, onPropChange }: BlockPropertyEdi
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function ChecklistItem({ label, status, detail }: { label: string; status: "pass" | "warn" | "fail"; detail: string }) {
+  return (
+    <div className="flex items-start gap-2 py-1.5" data-testid={`checklist-${label.toLowerCase().replace(/\s+/g, "-")}`}>
+      {status === "pass" ? (
+        <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+      ) : status === "warn" ? (
+        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+      ) : (
+        <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">{detail}</p>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye } from "lucide-react";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import type { BlockInstance } from "@shared/schema";
@@ -19,6 +19,7 @@ interface CmsPageData {
     ogImage?: string;
   };
   status: string;
+  _preview?: boolean;
 }
 
 function BlockRenderer({ block }: { block: BlockInstance }) {
@@ -248,9 +249,20 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 export default function CmsPage() {
   const [, params] = useRoute("/p/:slug");
   const slug = params?.slug || "";
+  const searchParams = new URLSearchParams(window.location.search);
+  const previewToken = searchParams.get("previewToken") || undefined;
+
+  const queryUrl = previewToken
+    ? `/api/public/pages/${slug}?previewToken=${encodeURIComponent(previewToken)}`
+    : `/api/public/pages/${slug}`;
 
   const { data: page, isLoading, error } = useQuery<CmsPageData>({
-    queryKey: ["/api/public/pages", slug],
+    queryKey: ["/api/public/pages", slug, previewToken || ""],
+    queryFn: async () => {
+      const res = await fetch(queryUrl, { credentials: "include" });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      return res.json();
+    },
     enabled: !!slug,
   });
 
@@ -283,9 +295,16 @@ export default function CmsPage() {
   }
 
   const blocks = Array.isArray(page.blocks) ? page.blocks : [];
+  const isPreview = !!page._preview;
 
   return (
     <SiteLayout>
+      {isPreview && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-amber-950 px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2" data-testid="preview-banner">
+          <Eye className="h-4 w-4" />
+          Draft Preview - This page is not published
+        </div>
+      )}
       <div data-testid="cms-page-content">
         {blocks.map((block) => (
           <BlockRenderer key={block.id} block={block} />
