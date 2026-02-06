@@ -134,6 +134,11 @@ export const blogPosts = pgTable("blog_posts", {
   publishedAt: timestamp("published_at"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   status: text("status").notNull().default("draft"),
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  canonicalUrl: text("canonical_url"),
+  ogImageUrl: text("og_image_url"),
+  focusKeyword: text("focus_keyword"),
 });
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
@@ -151,6 +156,11 @@ export const updateBlogPostSchema = z.object({
   tags: z.array(z.string()).optional(),
   status: z.enum(POST_STATUSES).optional(),
   publishedAt: z.string().nullable().optional(),
+  metaTitle: z.string().nullable().optional(),
+  metaDescription: z.string().nullable().optional(),
+  canonicalUrl: z.string().nullable().optional(),
+  ogImageUrl: z.string().nullable().optional(),
+  focusKeyword: z.string().nullable().optional(),
 });
 
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
