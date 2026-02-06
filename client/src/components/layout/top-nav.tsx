@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, TreePine } from "lucide-react";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const services = [
   { label: "Land Clearing", href: "/services/land-clearing" },
@@ -24,15 +25,24 @@ export function TopNav() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const { settings } = useSiteSettings();
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b" data-testid="top-nav">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0" data-testid="link-home-logo">
-            <TreePine className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold tracking-tight">
-              Brush<span className="text-primary">Whackers</span>
+            {settings.logoUrl ? (
+              <img src={settings.logoUrl} alt={settings.companyName} className="h-8 w-8 object-contain" />
+            ) : (
+              <TreePine className="h-8 w-8 text-primary" />
+            )}
+            <span className="text-xl font-bold tracking-tight" data-testid="text-company-name">
+              {settings.companyName === "BrushWhackers" ? (
+                <>Brush<span className="text-primary">Whackers</span></>
+              ) : (
+                settings.companyName
+              )}
             </span>
           </Link>
 
@@ -88,7 +98,7 @@ export function TopNav() {
 
           <div className="hidden md:flex items-center gap-2">
             <Link href="/quote">
-              <Button data-testid="link-get-quote">Get a Quote</Button>
+              <Button data-testid="link-get-quote">{settings.ctaText}</Button>
             </Link>
           </div>
 
@@ -136,7 +146,7 @@ export function TopNav() {
             ))}
             <div className="pt-2">
               <Link href="/quote" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full" data-testid="mobile-link-get-quote">Get a Quote</Button>
+                <Button className="w-full" data-testid="mobile-link-get-quote">{settings.ctaText}</Button>
               </Link>
             </div>
           </div>

@@ -1,10 +1,10 @@
 # BrushWhackers - Land Clearing & Brush Removal
 
 ## Overview
-BrushWhackers is a full-stack web application for a professional land clearing and brush removal business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management.
+BrushWhackers is a full-stack web application for a professional land clearing and brush removal business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management, blog CMS, and site-wide branding settings.
 
 ## Current Phase
-Phase 4: Admin Portal + CRM
+Phase 6: Branding Settings
 
 ## Tech Stack
 - **Frontend**: React + Vite + TypeScript + Wouter (routing) + TanStack Query
@@ -12,8 +12,8 @@ Phase 4: Admin Portal + CRM
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL (Neon-backed via Drizzle ORM)
 - **Auth**: Passport.js LocalStrategy + express-session (MemoryStore)
-- **Font**: Inter (applied globally)
-- **Brand Color**: Blue (primary: 217 91% 60%)
+- **Font**: Inter (configurable via branding settings)
+- **Brand Color**: Blue (primary: 217 91% 60%, configurable via branding settings)
 
 ## Project Structure
 ```
@@ -22,28 +22,31 @@ client/src/
     admin/
       admin-layout.tsx   - Admin layout with sidebar nav, auth guard, mobile support
     layout/              - SiteLayout (with sticky quote button), TopNav, Footer
-    sticky-quote-button  - Fixed position "Get a Quote" button on desktop
+    sticky-quote-button  - Fixed position CTA button on desktop (text from settings)
     ui/                  - Shadcn UI components
   hooks/
     use-admin-auth.ts    - Admin authentication hook (login/logout/me)
     use-page-meta.ts     - Hook for per-page SEO (title + meta description)
+    use-site-settings.tsx - SiteSettingsProvider context + useSiteSettings hook
     use-toast.ts         - Toast notifications hook
   pages/
     home.tsx             - SEO landing page
     services.tsx         - Services overview
     service-detail.tsx   - Individual service pages
     pricing.tsx          - 4 pricing tiers
-    blog.tsx             - Blog listing
-    blog-post.tsx        - Blog post view
+    blog.tsx             - Blog listing (database-driven)
+    blog-post.tsx        - Blog post view (database-driven)
     quote.tsx            - Multi-step quote form (4 steps)
     admin/
-      login.tsx          - Admin login page
+      login.tsx          - Admin login page (redirects to /admin after login)
       dashboard.tsx      - Dashboard with stats cards and pipeline overview
       leads.tsx          - CRM leads list with filters, search, pagination
       lead-detail.tsx    - Lead detail with status, notes, activity timeline
       cms.tsx            - Content manager shell
-      branding.tsx       - Branding settings shell
-      docs.tsx           - Docs library (Phase 4 documentation)
+      blog-list.tsx      - Blog CMS list with status/category filters
+      blog-editor.tsx    - Blog editor with markdown preview
+      branding.tsx       - Branding settings with live preview
+      docs.tsx           - Docs library (Phase 6 documentation)
   lib/
     stock-images.ts      - Stock image URL constants
     services-data.ts     - Full service definitions with SEO content
@@ -51,11 +54,12 @@ client/src/
 server/
   auth.ts                - Passport.js setup, session config, requireAdmin middleware
   routes.ts              - All API endpoints (public + admin)
-  storage.ts             - DatabaseStorage class (leads CRUD, notes, activity, stats)
+  storage.ts             - DatabaseStorage class (leads, blog, settings CRUD)
+  seed-blog.ts           - Seeds 12 SEO blog articles on first startup
   db.ts                  - Drizzle ORM + pg pool setup
   index.ts               - Express server entry
 shared/
-  schema.ts              - Drizzle schema (users, leads, lead_notes, lead_activity) + Zod validation
+  schema.ts              - Drizzle schema (users, leads, lead_notes, lead_activity, blog_posts, site_settings) + Zod validation
 ```
 
 ## Database Schema
@@ -63,11 +67,17 @@ shared/
 - **leads**: id (serial PK), fullName, phone, email, jobAddress, county, servicesNeeded (text[]), propertyType, approximateArea, accessFlags (text[]), accessNotes, desiredOutcome, timeline, budgetComfort, status (New|Contacted|Scheduled|Won|Lost), source, tags (text[]), assignedTo, lastContactedAt, createdAt, updatedAt
 - **lead_notes**: id (serial PK), leadId, note, createdBy, createdAt
 - **lead_activity**: id (serial PK), leadId, type (STATUS_CHANGE|NOTE_ADDED|ASSIGNED|EXPORTED), payload (jsonb), createdAt
+- **blog_posts**: id (UUID PK), slug (unique), title, excerpt, content (markdown), featuredImageUrl, category, tags (text[]), publishedAt, updatedAt, status (draft|published)
+- **site_settings**: id (serial PK), companyName, phone, email, serviceArea, logoUrl, primaryColor (HSL), secondaryColor (HSL), fontFamily, ctaText, socialFacebook, socialInstagram, socialYoutube, socialGoogle, updatedAt
 
 ## API Routes
 ### Public
 - `GET /api/health` - Health check
 - `POST /api/public/leads` - Create lead (Zod validated, rate-limited 5/min/IP, honeypot spam protection)
+- `GET /api/public/settings` - Get public site settings (branding, colors, contact info)
+- `GET /api/public/blog` - List published blog posts (optional category/search filters)
+- `GET /api/public/blog/:slug` - Get published blog post by slug
+- `GET /api/public/blog/:slug/related` - Get related posts by category
 
 ### Auth
 - `POST /api/admin/login` - Admin login (username/password)
@@ -83,7 +93,22 @@ shared/
 - `POST /api/admin/leads/:id/notes` - Add note
 - `GET /api/admin/leads/:id/notes` - List notes
 - `GET /api/admin/leads/:id/activity` - Activity log
+- `GET /api/admin/settings` - Get site settings (admin)
+- `PUT /api/admin/settings` - Update site settings
+- `GET /api/admin/blog` - List all blog posts (admin, with filters)
+- `POST /api/admin/blog` - Create blog post
+- `GET /api/admin/blog/:id` - Get blog post by ID
+- `PATCH /api/admin/blog/:id` - Update blog post
+- `DELETE /api/admin/blog/:id` - Delete blog post
 - `GET /api/admin/docs` - Project documentation JSON
+
+## Branding System
+- **site_settings table**: Single-row table stores all branding values
+- **SiteSettingsProvider**: React context loads settings on app init, injects --primary CSS variable into :root
+- **Color format**: HSL values (e.g. '217 91% 60%') for Tailwind CSS variable compatibility
+- **Defaults**: Safe defaults if settings missing: BrushWhackers, blue primary, green secondary, Inter font
+- **Applied locations**: TopNav (logo + company name + CTA text), Footer (contact info + social links + company name), StickyQuoteButton (CTA text)
+- **Admin page**: /admin/branding with live preview card, color pickers, company info, social links
 
 ## Admin Auth
 - Single admin user via ADMIN_PASSWORD environment variable (default: brushwhackers2026)
@@ -101,6 +126,7 @@ shared/
 - Each page has unique title and meta description via usePageMeta hook
 - H1 tags include service name + "Charlotte, NC"
 - Regional references throughout all content
+- 12 SEO-optimized blog articles with Charlotte-area focus
 
 ## Running Locally
 1. `npm install`
@@ -109,9 +135,11 @@ shared/
 4. `npm run dev` (starts on port 5000)
 
 ## User Preferences
-- Brand color: Blue
+- Brand color: Blue (configurable)
 - Target area: Charlotte, NC & surrounding counties (50mi radius)
 - Modern, beautiful, engaging design
 - SEO-driven content with local keywords
 - Multi-step quote form for lead capture
 - Admin CRM for managing leads
+- Full blog CMS with markdown editor
+- Site-wide branding customization

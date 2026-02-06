@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { TreePine, Phone, Mail, MapPin } from "lucide-react";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const serviceLinks = [
   { label: "Land Clearing", href: "/services/land-clearing" },
@@ -20,20 +21,46 @@ const companyLinks = [
 ];
 
 export function Footer() {
+  const { settings } = useSiteSettings();
+
   return (
     <footer className="bg-card border-t" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2" data-testid="footer-logo">
-              <TreePine className="h-7 w-7 text-primary" />
+              {settings.logoUrl ? (
+                <img src={settings.logoUrl} alt={settings.companyName} className="h-7 w-7 object-contain" />
+              ) : (
+                <TreePine className="h-7 w-7 text-primary" />
+              )}
               <span className="text-lg font-bold tracking-tight">
-                Brush<span className="text-primary">Whackers</span>
+                {settings.companyName === "BrushWhackers" ? (
+                  <>Brush<span className="text-primary">Whackers</span></>
+                ) : (
+                  settings.companyName
+                )}
               </span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Professional land clearing and brush removal services serving the greater Charlotte, North Carolina area.
+              Professional land clearing and brush removal services serving the greater {settings.serviceArea}.
             </p>
+            {(settings.socialFacebook || settings.socialInstagram || settings.socialYoutube || settings.socialGoogle) && (
+              <div className="flex items-center gap-3 pt-1">
+                {settings.socialFacebook && (
+                  <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors text-sm" data-testid="link-social-facebook">Facebook</a>
+                )}
+                {settings.socialInstagram && (
+                  <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors text-sm" data-testid="link-social-instagram">Instagram</a>
+                )}
+                {settings.socialYoutube && (
+                  <a href={settings.socialYoutube} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors text-sm" data-testid="link-social-youtube">YouTube</a>
+                )}
+                {settings.socialGoogle && (
+                  <a href={settings.socialGoogle} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors text-sm" data-testid="link-social-google">Google</a>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -75,15 +102,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                <span>(704) 555-0123</span>
+                <span data-testid="text-footer-phone">{settings.phone}</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                <span>info@brushwhackers.com</span>
+                <span data-testid="text-footer-email">{settings.email}</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                <span>Charlotte, NC & Surrounding Areas</span>
+                <span data-testid="text-footer-service-area">{settings.serviceArea}</span>
               </li>
             </ul>
           </div>
@@ -91,10 +118,10 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} BrushWhackers. All rights reserved.
+            &copy; {new Date().getFullYear()} {settings.companyName}. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            Serving Charlotte, NC & surrounding areas
+            Serving {settings.serviceArea}
           </p>
         </div>
       </div>

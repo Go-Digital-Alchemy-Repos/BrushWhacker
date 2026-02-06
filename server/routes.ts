@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, LEAD_STATUSES } from "@shared/schema";
+import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES } from "@shared/schema";
 import { z } from "zod";
 import passport from "passport";
 import { requireAdmin } from "./auth";
@@ -280,6 +280,17 @@ export async function registerRoutes(
     }
   });
 
+  // ---- Public Settings Route ----
+  app.get("/api/public/settings", async (_req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      return res.json(settings);
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+      return res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
   // ---- Public Blog Routes ----
   app.get("/api/public/blog", async (req, res) => {
     try {
@@ -409,11 +420,36 @@ export async function registerRoutes(
     }
   });
 
+  // ---- Admin Settings Routes ----
+  app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      return res.json(settings);
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+      return res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.put("/api/admin/settings", requireAdmin, async (req, res) => {
+    try {
+      const parsed = updateSiteSettingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const updated = await storage.updateSiteSettings(parsed.data);
+      return res.json(updated);
+    } catch (err) {
+      console.error("Failed to update settings:", err);
+      return res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
   app.get("/api/admin/docs", requireAdmin, (_req, res) => {
     res.json({
-      phase: "Phase 4: Admin Portal + CRM",
+      phase: "Phase 6: Branding Settings",
       overview:
-        "BrushWhackers is a full-stack web application for a land clearing and brush removal business targeting the Charlotte, North Carolina area. Phase 4 adds a complete admin portal with CRM functionality, session-based authentication, lead management with notes and activity tracking, CSV export, and a pipeline dashboard.",
+        "BrushWhackers is a full-stack web application for a land clearing and brush removal business targeting the Charlotte, North Carolina area. Phase 6 adds site-wide branding settings managed through the admin portal, with live preview and automatic CSS variable injection for theme customization.",
       authentication: {
         method: "Session-based with Passport.js LocalStrategy",
         adminUser: "Single admin user authenticated via ADMIN_PASSWORD environment variable",
@@ -425,19 +461,25 @@ export async function registerRoutes(
         { path: "/services", description: "Services overview" },
         { path: "/services/:slug", description: "Individual service detail page" },
         { path: "/pricing", description: "Pricing tiers" },
-        { path: "/blog", description: "Blog listing" },
-        { path: "/blog/:slug", description: "Blog post view" },
+        { path: "/blog", description: "Blog listing (database-driven)" },
+        { path: "/blog/:slug", description: "Blog post view (database-driven)" },
         { path: "/quote", description: "Multi-step quote form" },
         { path: "/admin", description: "Admin dashboard with pipeline stats" },
         { path: "/admin/leads", description: "CRM leads list with filters, search, pagination" },
         { path: "/admin/leads/:id", description: "Lead detail with status management, notes, activity" },
         { path: "/admin/cms", description: "Content manager shell" },
-        { path: "/admin/branding", description: "Branding settings shell" },
+        { path: "/admin/cms/blog", description: "Blog CMS list with filters" },
+        { path: "/admin/cms/blog/:id", description: "Blog editor with markdown preview" },
+        { path: "/admin/branding", description: "Branding settings with live preview" },
         { path: "/admin/docs", description: "Technical documentation library" },
       ],
       backendRoutes: [
         { method: "GET", path: "/api/health", description: "Health check" },
         { method: "POST", path: "/api/public/leads", description: "Create lead (public, rate-limited, honeypot)" },
+        { method: "GET", path: "/api/public/settings", description: "Get public site settings (branding, colors, contact info)" },
+        { method: "GET", path: "/api/public/blog", description: "List published blog posts with optional category/search filters" },
+        { method: "GET", path: "/api/public/blog/:slug", description: "Get published blog post by slug" },
+        { method: "GET", path: "/api/public/blog/:slug/related", description: "Get related posts by category" },
         { method: "POST", path: "/api/admin/login", description: "Admin login. Body: { username, password }. Returns { user }" },
         { method: "POST", path: "/api/admin/logout", description: "Admin logout. Returns { ok: true }" },
         { method: "GET", path: "/api/admin/me", description: "Get current admin user. Returns { user } or 401" },
@@ -454,12 +496,30 @@ export async function registerRoutes(
         { method: "POST", path: "/api/admin/leads/:id/notes", description: "Add note. Body: { note: string }. Returns created note" },
         { method: "GET", path: "/api/admin/leads/:id/notes", description: "List notes for lead" },
         { method: "GET", path: "/api/admin/leads/:id/activity", description: "List activity log for lead" },
+        { method: "GET", path: "/api/admin/settings", description: "Get site settings (admin). Returns full settings object" },
+        { method: "PUT", path: "/api/admin/settings", description: "Update site settings. Body: { companyName?, phone?, email?, serviceArea?, logoUrl?, primaryColor?, secondaryColor?, fontFamily?, ctaText?, socialFacebook?, socialInstagram?, socialYoutube?, socialGoogle? }" },
+        { method: "GET", path: "/api/admin/blog", description: "List all blog posts (admin, with status/category/search filters)" },
+        { method: "POST", path: "/api/admin/blog", description: "Create blog post" },
+        { method: "GET", path: "/api/admin/blog/:id", description: "Get blog post by ID" },
+        { method: "PATCH", path: "/api/admin/blog/:id", description: "Update blog post" },
+        { method: "DELETE", path: "/api/admin/blog/:id", description: "Delete blog post" },
         { method: "GET", path: "/api/admin/docs", description: "Project documentation JSON" },
       ],
       databaseSchema: {
+        users: "id (varchar PK, UUID), username (unique), password",
         leads: "id (serial PK), fullName, phone, email, jobAddress, county, servicesNeeded (text[]), propertyType, approximateArea, accessFlags (text[]), accessNotes, desiredOutcome, timeline, budgetComfort, status (New|Contacted|Scheduled|Won|Lost), source, tags (text[]), assignedTo, lastContactedAt, createdAt, updatedAt",
         lead_notes: "id (serial PK), leadId (FK), note (text), createdBy (text), createdAt",
         lead_activity: "id (serial PK), leadId, type (STATUS_CHANGE|NOTE_ADDED|ASSIGNED|EXPORTED), payload (jsonb), createdAt",
+        blog_posts: "id (UUID PK), slug (unique), title, excerpt, content (markdown), featuredImageUrl, category, tags (text[]), publishedAt, updatedAt, status (draft|published)",
+        site_settings: "id (serial PK), companyName, phone, email, serviceArea, logoUrl, primaryColor (HSL), secondaryColor (HSL), fontFamily, ctaText, socialFacebook, socialInstagram, socialYoutube, socialGoogle, updatedAt",
+      },
+      brandingSystem: {
+        settingsTable: "Single-row site_settings table stores all branding values",
+        cssVariableInjection: "SiteSettingsProvider context loads settings on app init and injects --primary CSS variable into :root",
+        colorFormat: "Colors stored as HSL values (e.g. '217 91% 60%') for compatibility with Tailwind CSS variable system",
+        defaults: "Safe defaults applied if settings row missing: BrushWhackers, blue primary, green secondary, Inter font",
+        livePreview: "Admin branding page includes a live preview card showing how changes will appear across the site",
+        appliedLocations: "Settings are applied to: TopNav (logo + company name + CTA text), Footer (contact info + social links + company name), StickyQuoteButton (CTA text), CSS variables (primary color)",
       },
     });
   });

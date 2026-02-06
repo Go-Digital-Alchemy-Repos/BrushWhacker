@@ -4,7 +4,8 @@ import {
   type LeadNote, type InsertLeadNote,
   type LeadActivity, type InsertLeadActivity,
   type BlogPost, type InsertBlogPost,
-  leads, leadNotes, leadActivity, blogPosts,
+  type SiteSettings, type UpdateSiteSettings,
+  leads, leadNotes, leadActivity, blogPosts, siteSettings,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -51,6 +52,8 @@ export interface IStorage {
   getBlogPosts(filters?: { status?: string; category?: string; search?: string }): Promise<BlogPost[]>;
   getPublishedBlogPosts(filters?: { category?: string; search?: string }): Promise<BlogPost[]>;
   getRelatedPosts(postId: string, category: string, limit?: number): Promise<BlogPost[]>;
+  getSiteSettings(): Promise<SiteSettings>;
+  updateSiteSettings(data: UpdateSiteSettings): Promise<SiteSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -285,6 +288,23 @@ export class DatabaseStorage implements IStorage {
       ))
       .orderBy(desc(blogPosts.publishedAt))
       .limit(limit);
+  }
+
+  async getSiteSettings(): Promise<SiteSettings> {
+    const rows = await db.select().from(siteSettings).limit(1);
+    if (rows.length > 0) return rows[0];
+    const [created] = await db.insert(siteSettings).values({}).returning();
+    return created;
+  }
+
+  async updateSiteSettings(data: UpdateSiteSettings): Promise<SiteSettings> {
+    const existing = await this.getSiteSettings();
+    const [updated] = await db
+      .update(siteSettings)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(siteSettings.id, existing.id))
+      .returning();
+    return updated;
   }
 }
 
