@@ -3,11 +3,12 @@ import {
   type Lead, type InsertLead,
   type LeadNote, type InsertLeadNote,
   type LeadActivity, type InsertLeadActivity,
-  leads, leadNotes, leadActivity,
+  type BlogPost, type InsertBlogPost,
+  leads, leadNotes, leadActivity, blogPosts,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, or, ilike, gte, lte, sql, inArray, ne, asc } from "drizzle-orm";
 
 export interface LeadFilters {
   status?: string;
@@ -42,6 +43,14 @@ export interface IStorage {
   createLeadActivity(activity: InsertLeadActivity): Promise<LeadActivity>;
   getLeadActivity(leadId: number): Promise<LeadActivity[]>;
   getLeadStats(): Promise<{ total: number; newThisWeek: number; pipeline: Record<string, number> }>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: string, data: Partial<Omit<BlogPost, "id">>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: string): Promise<boolean>;
+  getBlogPost(id: string): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  getBlogPosts(filters?: { status?: string; category?: string; search?: string }): Promise<BlogPost[]>;
+  getPublishedBlogPosts(filters?: { category?: string; search?: string }): Promise<BlogPost[]>;
+  getRelatedPosts(postId: string, category: string, limit?: number): Promise<BlogPost[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -211,6 +220,71 @@ export class DatabaseStorage implements IStorage {
       newThisWeek: newWeekResult.count,
       pipeline,
     };
+  }
+
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const [created] = await db.insert(blogPosts).values(post).returning();
+    return created;
+  }
+
+  async updateBlogPost(id: string, data: Partial<Omit<BlogPost, "id">>): Promise<BlogPost | undefined> {
+    const updateData = { ...data, updatedAt: new Date() };
+    const [updated] = await db
+      .update(blogPosts)
+      .set(updateData)
+      .where(eq(blogPosts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBlogPost(id: string): Promise<boolean> {
+    const result = await db.delete(blogPosts).where(eq(blogPosts.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getBlogPost(id: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post;
+  }
+
+  async getBlogPosts(filters: { status?: string; category?: string; search?: string } = {}): Promise<BlogPost[]> {
+    const conditions: any[] = [];
+    if (filters.status) conditions.push(eq(blogPosts.status, filters.status));
+    if (filters.category) conditions.push(eq(blogPosts.category, filters.category));
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(or(ilike(blogPosts.title, term), ilike(blogPosts.excerpt, term)));
+    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    return db.select().from(blogPosts).where(whereClause).orderBy(desc(blogPosts.updatedAt));
+  }
+
+  async getPublishedBlogPosts(filters: { category?: string; search?: string } = {}): Promise<BlogPost[]> {
+    const conditions: any[] = [eq(blogPosts.status, "published")];
+    if (filters.category) conditions.push(eq(blogPosts.category, filters.category));
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(or(ilike(blogPosts.title, term), ilike(blogPosts.excerpt, term)));
+    }
+    return db.select().from(blogPosts).where(and(...conditions)).orderBy(desc(blogPosts.publishedAt));
+  }
+
+  async getRelatedPosts(postId: string, category: string, limit = 3): Promise<BlogPost[]> {
+    return db
+      .select()
+      .from(blogPosts)
+      .where(and(
+        eq(blogPosts.status, "published"),
+        eq(blogPosts.category, category),
+        ne(blogPosts.id, postId),
+      ))
+      .orderBy(desc(blogPosts.publishedAt))
+      .limit(limit);
   }
 }
 

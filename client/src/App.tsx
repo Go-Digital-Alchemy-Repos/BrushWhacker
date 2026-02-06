@@ -11,10 +11,13 @@ import Pricing from "@/pages/pricing";
 import Blog from "@/pages/blog";
 import BlogPost from "@/pages/blog-post";
 import Quote from "@/pages/quote";
+import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminLeads from "@/pages/admin/leads";
 import LeadDetail from "@/pages/admin/lead-detail";
 import AdminCMS from "@/pages/admin/cms";
+import AdminBlogList from "@/pages/admin/blog-list";
+import AdminBlogEditor from "@/pages/admin/blog-editor";
 import AdminBranding from "@/pages/admin/branding";
 import AdminDocs from "@/pages/admin/docs";
 
@@ -28,10 +31,13 @@ function Router() {
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/quote" component={Quote} />
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={AdminLeads} />
       <Route path="/admin/leads/:id" component={LeadDetail} />
       <Route path="/admin/cms" component={AdminCMS} />
+      <Route path="/admin/cms/blog" component={AdminBlogList} />
+      <Route path="/admin/cms/blog/:id" component={AdminBlogEditor} />
       <Route path="/admin/branding" component={AdminBranding} />
       <Route path="/admin/docs" component={AdminDocs} />
       <Route component={NotFound} />

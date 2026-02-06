@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, serial, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, serial, jsonb, integer, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -99,3 +99,40 @@ export const insertLeadActivitySchema = createInsertSchema(leadActivity).omit({
 
 export type InsertLeadActivity = z.infer<typeof insertLeadActivitySchema>;
 export type LeadActivity = typeof leadActivity.$inferSelect;
+
+export const POST_STATUSES = ["draft", "published"] as const;
+export type PostStatus = (typeof POST_STATUSES)[number];
+
+export const blogPosts = pgTable("blog_posts", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  featuredImageUrl: text("featured_image_url"),
+  category: text("category").notNull(),
+  tags: text("tags").array(),
+  publishedAt: timestamp("published_at"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  status: text("status").notNull().default("draft"),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const updateBlogPostSchema = z.object({
+  slug: z.string().min(1).optional(),
+  title: z.string().min(1).optional(),
+  excerpt: z.string().min(1).optional(),
+  content: z.string().min(1).optional(),
+  featuredImageUrl: z.string().nullable().optional(),
+  category: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(POST_STATUSES).optional(),
+  publishedAt: z.string().nullable().optional(),
+});
+
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;

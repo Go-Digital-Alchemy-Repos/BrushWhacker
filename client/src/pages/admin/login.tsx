@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +8,21 @@ import { TreePine, Loader2 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 
 export default function AdminLogin() {
-  const { login, isLoggingIn, loginError } = useAdminAuth();
+  const { login, isLoggingIn, loginError, isAuthenticated } = useAdminAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [, navigate] = useLocation();
+
+  if (isAuthenticated) {
+    navigate("/admin");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login({ username, password });
+      navigate("/admin");
     } catch {}
   };
 

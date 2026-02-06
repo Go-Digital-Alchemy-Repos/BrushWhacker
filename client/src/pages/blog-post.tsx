@@ -1,50 +1,96 @@
 import { useParams, Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { SiteLayout } from "@/components/layout/site-layout";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { STOCK_IMAGES } from "@/lib/stock-images";
+import { ArrowLeft, Calendar, ArrowRight } from "lucide-react";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import DOMPurify from "dompurify";
+import type { BlogPost } from "@shared/schema";
 
-const posts: Record<string, { title: string; date: string; category: string; content: string }> = {
-  "when-to-clear-your-land": {
-    title: "When Is the Best Time to Clear Your Land?",
-    date: "Jan 15, 2026",
-    category: "Tips",
-    content:
-      "Land clearing timing depends on several factors including weather, soil conditions, and local regulations. In the Charlotte, NC area, late fall through early spring is often ideal. The ground is firmer, vegetation is dormant, and wildlife nesting seasons are avoided.\n\nDry periods are preferred because heavy equipment works better on firm ground. Wet conditions can cause rutting and soil compaction. However, for forestry mulching, a light freeze can actually make the work easier.\n\nAlways check with your local county for any burn bans or clearing restrictions before starting your project. Our team at BrushWhackers can help you navigate permitting and timing for the best results.",
-  },
-  "forestry-mulching-vs-traditional-clearing": {
-    title: "Forestry Mulching vs Traditional Clearing: Which is Right for You?",
-    date: "Jan 8, 2026",
-    category: "Education",
-    content:
-      "When it comes to clearing land, there are two primary methods: forestry mulching and traditional clearing. Each has its advantages depending on your goals.\n\nForestry mulching uses a single machine to cut, grind, and clear vegetation in one pass. The mulched material stays on-site, providing natural erosion control and returning nutrients to the soil. It's faster, more eco-friendly, and often more cost-effective for moderate vegetation.\n\nTraditional clearing involves multiple machines and steps: cutting, pushing, burning or hauling, and sometimes grinding stumps separately. It's better for heavy timber and when you need a completely clean surface for construction.\n\nAt BrushWhackers, we assess each property individually and recommend the method that best fits your needs, budget, and timeline.",
-  },
-  "preparing-lot-for-construction": {
-    title: "How to Prepare Your Lot for New Construction",
-    date: "Dec 20, 2025",
-    category: "Guides",
-    content:
-      "Preparing a lot for construction involves more than just removing trees. Here's a step-by-step overview.\n\nFirst, get a survey done to know your exact property boundaries and setback requirements. Next, check with your county for any tree ordinances or clearing permits required.\n\nThe clearing process typically includes removing all vegetation, grinding stumps, and initial rough grading. If the lot has significant slope, you may need additional earthwork.\n\nDrainage is critical - plan for how water will flow during and after construction. Finally, make sure access roads are established for construction equipment.\n\nBrushWhackers handles all aspects of lot preparation and works closely with builders and developers throughout the Charlotte area.",
-  },
-  "storm-damage-cleanup-tips": {
-    title: "Storm Damage Cleanup: What Homeowners Need to Know",
-    date: "Dec 10, 2025",
-    category: "Tips",
-    content:
-      "Charlotte and the surrounding areas are no stranger to severe storms. When a storm damages your property, safety comes first.\n\nStay away from downed power lines and unstable trees. Document all damage with photos and videos for your insurance company. Contact your insurance provider as soon as possible to start a claim.\n\nFor tree removal, always hire a professional. Chainsaws and heavy branches are extremely dangerous without proper training and equipment. Our team at BrushWhackers provides emergency storm cleanup services with rapid response times.\n\nWe also help with insurance documentation, providing detailed reports and photos of the damage and cleanup process to support your claim.",
-  },
+const categoryImages: Record<string, string> = {
+  "Forestry Mulching": STOCK_IMAGES.forestryMulching,
+  "Land Clearing": STOCK_IMAGES.landClearing,
+  "Brush Removal": STOCK_IMAGES.brushRemoval,
+  "Lot Clearing": STOCK_IMAGES.lotClearing,
+  "Storm Cleanup": STOCK_IMAGES.stormCleanup,
+  "Stump Grinding": STOCK_IMAGES.stumpGrinding,
+  "Driveway/Trail Cutting": STOCK_IMAGES.drivewayTrailCutting,
+  "Pricing": STOCK_IMAGES.landClearing,
 };
 
-export default function BlogPost() {
-  const { slug } = useParams<{ slug: string }>();
-  const post = posts[slug || ""];
+function renderMarkdown(md: string): string {
+  let html = md
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-6 mb-2 text-foreground">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold mt-8 mb-3 text-foreground">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-8 mb-4 text-foreground">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:no-underline">$1</a>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-muted-foreground">$1</li>');
 
-  if (!post) {
+  html = html.replace(/((?:<li[^>]*>.*<\/li>\s*)+)/g, (match) => `<ul class="my-3 space-y-1">${match}</ul>`);
+
+  const blocks = html.split(/\n\n+/);
+  html = blocks
+    .map((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) return "";
+      if (trimmed.startsWith("<h") || trimmed.startsWith("<ul") || trimmed.startsWith("<li")) return trimmed;
+      return `<p class="mb-4 text-muted-foreground leading-relaxed">${trimmed}</p>`;
+    })
+    .join("\n");
+
+  return html;
+}
+
+export default function BlogPostPage() {
+  const { slug } = useParams<{ slug: string }>();
+
+  const { data: post, isLoading, error } = useQuery<BlogPost>({
+    queryKey: ["/api/public/blog", slug],
+    queryFn: () => fetch(`/api/public/blog/${slug}`).then(r => {
+      if (!r.ok) throw new Error("Post not found");
+      return r.json();
+    }),
+    enabled: !!slug,
+  });
+
+  const { data: related = [] } = useQuery<BlogPost[]>({
+    queryKey: ["/api/public/blog", slug, "related"],
+    queryFn: () => fetch(`/api/public/blog/${slug}/related`).then(r => r.json()),
+    enabled: !!slug && !!post,
+  });
+
+  usePageMeta({
+    title: post ? `${post.title} | BrushWhackers Blog` : "Blog | BrushWhackers Charlotte, NC",
+    description: post?.excerpt || "Expert tips and guides about land clearing in Charlotte, NC.",
+  });
+
+  if (isLoading) {
+    return (
+      <SiteLayout>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="h-6 bg-muted/30 animate-pulse rounded w-1/4 mb-6" />
+          <div className="h-10 bg-muted/30 animate-pulse rounded w-3/4 mb-8" />
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-4 bg-muted/30 animate-pulse rounded" />
+            ))}
+          </div>
+        </div>
+      </SiteLayout>
+    );
+  }
+
+  if (!post || error) {
     return (
       <SiteLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="text-2xl font-bold" data-testid="text-post-not-found">Post Not Found</h1>
-          <p className="mt-3 text-muted-foreground">This blog post doesn't exist yet.</p>
+          <p className="mt-3 text-muted-foreground">This blog post doesn't exist or hasn't been published yet.</p>
           <Link href="/blog">
             <Button variant="outline" className="mt-6 gap-2">
               <ArrowLeft className="h-4 w-4" /> Back to Blog
@@ -64,27 +110,65 @@ export default function BlogPost() {
           </Link>
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Badge variant="secondary">{post.category}</Badge>
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" /> {post.date}
-            </span>
+            {post.publishedAt && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+            )}
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight" data-testid="text-post-title">
             {post.title}
           </h1>
-          <div className="mt-8 prose prose-slate dark:prose-invert max-w-none" data-testid="text-post-content">
-            {post.content.split("\n\n").map((p, i) => (
-              <p key={i} className="text-muted-foreground leading-relaxed mb-4">{p}</p>
-            ))}
+
+          {post.featuredImageUrl && (
+            <div className="mt-6 rounded-md overflow-hidden">
+              <img src={post.featuredImageUrl} alt={post.title} className="w-full h-auto object-cover" />
+            </div>
+          )}
+
+          <div className="mt-8 max-w-none" data-testid="text-post-content">
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(post.content)) }} />
           </div>
+
           <div className="mt-12 pt-8 border-t">
-            <h3 className="font-semibold">Need help with your property?</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Get a free quote from BrushWhackers today.
-            </p>
-            <Link href="/quote">
-              <Button className="mt-4" data-testid="blog-cta-quote">Get a Free Quote</Button>
-            </Link>
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg">Ready to Clear Your Property?</h3>
+                <p className="text-sm text-muted-foreground mt-2 mb-4">
+                  Get a free, no-obligation quote from BrushWhackers. We serve Charlotte, NC and surrounding areas within a 50-mile radius.
+                </p>
+                <Link href="/quote">
+                  <Button data-testid="blog-cta-quote">Get a Free Quote</Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
+
+          {related.length > 0 && (
+            <div className="mt-12 pt-8 border-t">
+              <h3 className="font-semibold text-lg mb-4">Related Articles</h3>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {related.map((rp) => (
+                  <Link key={rp.id} href={`/blog/${rp.slug}`}>
+                    <Card className="overflow-hidden hover-elevate cursor-pointer h-full" data-testid={`card-related-${rp.slug}`}>
+                      <div className="aspect-video overflow-hidden">
+                        <img
+                          src={rp.featuredImageUrl || categoryImages[rp.category] || STOCK_IMAGES.landClearing}
+                          alt={rp.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <CardContent className="p-3">
+                        <Badge variant="secondary" className="mb-2">{rp.category}</Badge>
+                        <h4 className="font-medium text-sm leading-snug">{rp.title}</h4>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </article>
     </SiteLayout>
