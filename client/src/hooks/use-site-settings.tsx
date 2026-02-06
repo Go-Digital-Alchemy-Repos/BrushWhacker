@@ -4,7 +4,7 @@ import type { SiteSettings } from "@shared/schema";
 
 const DEFAULT_SETTINGS: Omit<SiteSettings, "id" | "updatedAt"> = {
   companyName: "BrushWhackers",
-  phone: "(704) 555-0123",
+  phone: "(704) 608-5783",
   email: "info@brushwhackers.com",
   serviceArea: "Charlotte, NC & Surrounding Areas",
   logoUrl: null,

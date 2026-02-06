@@ -56,7 +56,7 @@ export default function AdminBranding() {
 
   const [form, setForm] = useState({
     companyName: "BrushWhackers",
-    phone: "(704) 555-0123",
+    phone: "(704) 608-5783",
     email: "info@brushwhackers.com",
     serviceArea: "Charlotte, NC & Surrounding Areas",
     logoUrl: "",

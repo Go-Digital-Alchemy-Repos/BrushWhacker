@@ -337,7 +337,7 @@ export default function Quote() {
                               type="tel"
                               value={formData.phone}
                               onChange={(e) => updateField("phone", e.target.value)}
-                              placeholder="(704) 555-0123"
+                              placeholder="(704) 608-5783"
                               data-testid="input-phone"
                             />
                             {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
@@ -659,7 +659,7 @@ export default function Quote() {
                       <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <div>
                         <div className="font-medium">Phone</div>
-                        <div className="text-muted-foreground">(704) 555-0123</div>
+                        <div className="text-muted-foreground">(704) 608-5783</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 text-sm">

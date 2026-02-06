@@ -140,7 +140,7 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 export const siteSettings = pgTable("site_settings", {
   id: serial("id").primaryKey(),
   companyName: text("company_name").notNull().default("BrushWhackers"),
-  phone: text("phone").notNull().default("(704) 555-0123"),
+  phone: text("phone").notNull().default("(704) 608-5783"),
   email: text("email").notNull().default("info@brushwhackers.com"),
   serviceArea: text("service_area").notNull().default("Charlotte, NC & Surrounding Areas"),
   logoUrl: text("logo_url"),
