@@ -8,7 +8,7 @@ import type { AdminRole } from "@shared/schema";
 import { storage } from "./storage";
 
 const LEGACY_ADMIN_USERNAME = "admin";
-const LEGACY_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "brushboss2026";
+const LEGACY_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "forestryboss2026";
 
 declare global {
   namespace Express {

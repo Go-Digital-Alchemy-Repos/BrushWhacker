@@ -44,7 +44,7 @@ const processSteps = [
   { step: "3", title: "We Clear It Clean", desc: "Our crew arrives, clears the land, and leaves your property clean and ready for whatever comes next." },
 ];
 
-const whyBrushBoss = [
+const whyForestryBoss = [
   { icon: TreePine, text: "Forestry mulching specialists — it's what we do best" },
   { icon: MapPin, text: "Locally owned and operated in the Charlotte metro" },
   { icon: HardHat, text: "Commercial-grade mulchers, brush hogs, and skid steers" },
@@ -59,7 +59,7 @@ const testimonials = [
     location: "Huntersville",
   },
   {
-    text: "We called Brush Boss to clear fence lines on our horse property. They did exactly what they said they'd do, showed up on time, and the price was fair. Already booked them for a second project.",
+    text: "We called Forestry Boss to clear fence lines on our horse property. They did exactly what they said they'd do, showed up on time, and the price was fair. Already booked them for a second project.",
     name: "Laura S.",
     location: "Waxhaw",
   },
@@ -87,18 +87,18 @@ const serviceTowns = [
 
 export default function Home() {
   usePageMeta({
-    title: "Brush Boss | Forestry Mulching & Land Clearing in Charlotte, NC",
-    description: "Brush Boss provides forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC region. Fast quotes. Professional equipment.",
+    title: "Forestry Boss | Forestry Mulching & Land Clearing in Charlotte, NC",
+    description: "Forestry Boss provides forestry mulching, trail cutting, hillside clearing, brush hogging, fence line clearing, and invasive growth removal across the Charlotte, NC region. Fast quotes. Professional equipment.",
     canonicalUrl: "/",
     ogType: "website",
     jsonLd: JSON.stringify({
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": "Brush Boss",
+      "name": "Forestry Boss",
       "description": "Professional forestry mulching and land clearing services in Charlotte, NC and surrounding areas.",
       "url": window.location.origin,
       "telephone": "(704) 608-5783",
-      "email": "info@brushboss.com",
+      "email": "info@forestryboss.com",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Charlotte",
@@ -291,13 +291,13 @@ export default function Home() {
             <div>
               <SectionHeaderPro
                 eyebrow="Why Choose Us"
-                title="Why Brush Boss"
+                title="Why Forestry Boss"
                 align="left"
                 subtitle="We're not a general contractor who happens to own a mulcher. Forestry mulching and land clearing is all we do — and we've spent years building the equipment lineup, crew, and processes to do it better than anyone in the Charlotte area."
                 className="mb-8"
               />
               <div className="space-y-4">
-                {whyBrushBoss.map((b) => (
+                {whyForestryBoss.map((b) => (
                   <div key={b.text} className="flex gap-4 items-start">
                     <div className="h-10 w-10 shrink-0 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
                       <b.icon className="h-5 w-5 text-primary" />

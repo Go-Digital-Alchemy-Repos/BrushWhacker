@@ -37,8 +37,8 @@ export function Footer() {
                   <TreePine className="h-7 w-7 text-primary" />
                 )}
                 <span className="text-lg font-bold tracking-tight">
-                  {settings.companyName === "Brush Boss" ? (
-                    <>Brush<span className="text-primary"> Boss</span></>
+                  {settings.companyName === "Forestry Boss" ? (
+                    <>Forestry<span className="text-primary"> Boss</span></>
                   ) : (
                     settings.companyName
                   )}

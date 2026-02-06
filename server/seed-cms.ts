@@ -12,11 +12,11 @@ const SYSTEM_BLOCKS = [
     isSystem: true,
     defaultProps: {
       headline: "Professional Land Clearing & Forestry Mulching",
-      subheadline: "Brush Boss delivers expert brush clearing, forestry mulching, and land management across the Charlotte, NC region.",
+      subheadline: "Forestry Boss delivers expert brush clearing, forestry mulching, and land management across the Charlotte, NC region.",
       primaryCtaText: "Get a Free Quote",
       primaryCtaHref: "/quote",
       imageUrl: "/images/hero-land-clearing.jpg",
-      imageAlt: "Brush Boss forestry mulching equipment clearing overgrown property",
+      imageAlt: "Forestry Boss forestry mulching equipment clearing overgrown property",
     },
     schema: {
       fields: [
@@ -322,7 +322,7 @@ const THEME_PRESETS = [
   {
     key: "earth-pro",
     name: "Earth Pro",
-    description: "Warm earth tones with brown and green accents, matching the current Brush Boss brand.",
+    description: "Warm earth tones with brown and green accents, matching the current Forestry Boss brand.",
     isSystem: true,
     isActive: true,
     tokens: {
