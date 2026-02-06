@@ -4,7 +4,8 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
   TreePine, LayoutDashboard, Users, FileText, Palette, BookOpen,
   LogOut, Loader2, ExternalLink, Menu, X, Shield, ShieldAlert,
-  FolderOpen, MessageSquareQuote,
+  FolderOpen, MessageSquareQuote, ChevronDown, Layout, LayoutGrid,
+  ImageIcon, ArrowRightLeft, Search,
 } from "lucide-react";
 import { useState } from "react";
 import AdminLogin from "@/pages/admin/login";
@@ -17,12 +18,42 @@ interface NavItem {
   allowedRoles: AdminRole[];
 }
 
-const navItems: NavItem[] = [
+interface NavGroup {
+  title: string;
+  icon: any;
+  allowedRoles: AdminRole[];
+  basePath: string;
+  children: NavItem[];
+}
+
+type NavEntry = NavItem | NavGroup;
+
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return "children" in entry;
+}
+
+const cmsChildren: NavItem[] = [
+  { title: "Pages", href: "/admin/cms/pages", icon: FileText, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Blog Posts", href: "/admin/cms/blog", icon: BookOpen, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Templates", href: "/admin/cms/templates", icon: Layout, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Block Library", href: "/admin/cms/blocks", icon: LayoutGrid, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Media Library", href: "/admin/cms/media", icon: ImageIcon, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Themes", href: "/admin/cms/themes", icon: Palette, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Redirects", href: "/admin/cms/redirects", icon: ArrowRightLeft, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Testimonials", href: "/admin/cms/testimonials", icon: MessageSquareQuote, allowedRoles: ["super_admin", "admin", "editor"] },
+];
+
+const navEntries: NavEntry[] = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
   { title: "Leads", href: "/admin/leads", icon: Users, allowedRoles: ["super_admin", "admin", "sales"] },
   { title: "Projects", href: "/admin/crm/projects", icon: FolderOpen, allowedRoles: ["super_admin", "admin", "sales"] },
-  { title: "CMS", href: "/admin/cms", icon: FileText, allowedRoles: ["super_admin", "admin", "editor"] },
-  { title: "Testimonials", href: "/admin/cms/testimonials", icon: MessageSquareQuote, allowedRoles: ["super_admin", "admin", "editor"] },
+  {
+    title: "CMS",
+    icon: FileText,
+    allowedRoles: ["super_admin", "admin", "editor"],
+    basePath: "/admin/cms",
+    children: cmsChildren,
+  },
   { title: "Branding", href: "/admin/branding", icon: Palette, allowedRoles: ["super_admin", "admin"] },
   { title: "Docs", href: "/admin/docs", icon: BookOpen, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
 ];
@@ -39,6 +70,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const isCmsSection = location.startsWith("/admin/cms");
+  const [cmsOpen, setCmsOpen] = useState(isCmsSection);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -51,11 +85,74 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <AdminLogin />;
   }
 
-  const visibleItems = navItems.filter((item) => hasRole(item.allowedRoles));
+  const visibleEntries = navEntries.filter((entry) => hasRole(entry.allowedRoles));
 
-  const isBlockedRoute = !visibleItems.some(
-    (item) => location === item.href || (item.href !== "/admin" && location.startsWith(item.href))
+  const allAllowedPaths: string[] = [];
+  visibleEntries.forEach((entry) => {
+    if (isGroup(entry)) {
+      entry.children.filter(c => hasRole(c.allowedRoles)).forEach(c => allAllowedPaths.push(c.href));
+      allAllowedPaths.push(entry.basePath);
+    } else {
+      allAllowedPaths.push(entry.href);
+    }
+  });
+
+  const isBlockedRoute = !allAllowedPaths.some(
+    (path) => location === path || (path !== "/admin" && location.startsWith(path))
   ) && location !== "/admin";
+
+  const renderNavItem = (item: NavItem, indent = false) => {
+    const isActive = location === item.href || (item.href !== "/admin" && location.startsWith(item.href));
+    return (
+      <Link key={item.href} href={item.href} data-testid={`nav-admin-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className={`
+            w-full flex items-center gap-2.5 py-2 rounded-md text-sm transition-colors
+            ${indent ? "pl-9 pr-3" : "px-3"}
+            ${isActive
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }
+          `}
+        >
+          <item.icon className="h-4 w-4 shrink-0" />
+          {item.title}
+        </button>
+      </Link>
+    );
+  };
+
+  const renderNavGroup = (group: NavGroup) => {
+    const isAnyCmsActive = location.startsWith(group.basePath);
+    const visibleChildren = group.children.filter(c => hasRole(c.allowedRoles));
+    const expanded = cmsOpen || isAnyCmsActive;
+
+    return (
+      <div key={group.title}>
+        <button
+          onClick={() => setCmsOpen(!expanded)}
+          className={`
+            w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors
+            ${isAnyCmsActive
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }
+          `}
+          data-testid={`nav-admin-${group.title.toLowerCase()}`}
+        >
+          <group.icon className="h-4 w-4 shrink-0" />
+          {group.title}
+          <ChevronDown className={`h-3.5 w-3.5 ml-auto shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+        </button>
+        {expanded && (
+          <div className="mt-0.5 space-y-0.5">
+            {visibleChildren.map((child) => renderNavItem(child, true))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -80,27 +177,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {visibleItems.map((item) => {
-            const isActive = location === item.href || (item.href !== "/admin" && location.startsWith(item.href));
-            return (
-              <Link key={item.href} href={item.href}>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className={`
-                    w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors
-                    ${isActive
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    }
-                  `}
-                  data-testid={`nav-admin-${item.title.toLowerCase()}`}
-                >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  {item.title}
-                </button>
-              </Link>
-            );
-          })}
+          {visibleEntries.map((entry) =>
+            isGroup(entry) ? renderNavGroup(entry) : renderNavItem(entry)
+          )}
         </nav>
 
         <div className="border-t p-3 space-y-2">
