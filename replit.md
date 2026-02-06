@@ -86,6 +86,8 @@ shared/
 - `GET /api/public/blog` - List published blog posts (optional category/search filters)
 - `GET /api/public/blog/:slug` - Get published blog post by slug
 - `GET /api/public/blog/:slug/related` - Get related posts by category
+- `GET /sitemap.xml` - Dynamic XML sitemap (published CMS pages + blog posts)
+- `GET /robots.txt` - Robots directives with sitemap link
 
 ### Auth
 - `POST /api/admin/login` - Admin login (username/password)
@@ -143,6 +145,13 @@ shared/
 - Regional references throughout all content (Charlotte area counties and towns)
 - 8 SEO-optimized blog articles with Charlotte-area focus
 - Problem/solution messaging style (BrushWorksco approach)
+- Dynamic sitemap.xml with redirect-aware canonical URLs
+- robots.txt with sitemap link and admin/API exclusions
+- JSON-LD structured data presets (LocalBusiness, Service, FAQPage, Article)
+- SEO validation tool in page builder
+- OG image fallback chain (explicit > hero image > site default)
+- Canonical URL support with redirect resolution
+- PUBLIC_SITE_URL env var for absolute URL generation
 
 ## Color Scheme
 - **Light mode**: Warm cream/beige backgrounds, brown primary (#b07430), sage green accents

@@ -42,3 +42,4 @@ waitForPort = 5000
 
 [userenv.shared]
 ADMIN_PASSWORD = "brushwhackers2026"
+PUBLIC_SITE_URL = "https://brushwhackers.com"

@@ -449,6 +449,96 @@ export async function registerRoutes(
 
   registerCmsRoutes(app);
 
+  // ---- Sitemap.xml ----
+  app.get("/sitemap.xml", async (_req, res) => {
+    try {
+      const baseUrl = (process.env.PUBLIC_SITE_URL || `https://${_req.headers.host}`).replace(/\/$/, "");
+      const pages = await storage.getCmsPages({ status: "published" });
+      const posts = await storage.getPublishedBlogPosts({});
+      const redirects = await storage.getCmsRedirects();
+      const redirectMap = new Map<string, string>();
+      for (const r of redirects) {
+        redirectMap.set(r.fromPath, r.toPath);
+      }
+
+      function resolveCanonical(path: string): string {
+        let current = path;
+        const visited = new Set<string>();
+        while (redirectMap.has(current) && !visited.has(current)) {
+          visited.add(current);
+          current = redirectMap.get(current)!;
+        }
+        return current;
+      }
+
+      const staticRoutes = [
+        { loc: "/", priority: "1.0", changefreq: "weekly" },
+        { loc: "/services", priority: "0.8", changefreq: "monthly" },
+        { loc: "/services/forestry-mulching", priority: "0.8", changefreq: "monthly" },
+        { loc: "/services/trail-cutting", priority: "0.7", changefreq: "monthly" },
+        { loc: "/services/hillside-mulching", priority: "0.7", changefreq: "monthly" },
+        { loc: "/services/brush-hogging", priority: "0.7", changefreq: "monthly" },
+        { loc: "/services/fence-line-clearing", priority: "0.7", changefreq: "monthly" },
+        { loc: "/services/invasive-growth-removal", priority: "0.7", changefreq: "monthly" },
+        { loc: "/pricing", priority: "0.7", changefreq: "monthly" },
+        { loc: "/quote", priority: "0.8", changefreq: "monthly" },
+        { loc: "/blog", priority: "0.7", changefreq: "daily" },
+      ];
+
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+      for (const route of staticRoutes) {
+        const canonical = resolveCanonical(route.loc);
+        xml += `  <url>\n    <loc>${baseUrl}${canonical}</loc>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>\n  </url>\n`;
+      }
+
+      for (const page of pages) {
+        const pagePath = `/${page.slug}`;
+        const canonical = resolveCanonical(pagePath);
+        const seo = (page.seo || {}) as any;
+        const priority = seo?.sitemap?.priority || "0.6";
+        const changefreq = seo?.sitemap?.changefreq || "monthly";
+        const lastmod = page.updatedAt ? new Date(page.updatedAt).toISOString().split("T")[0] : undefined;
+        xml += `  <url>\n    <loc>${baseUrl}${canonical}</loc>\n`;
+        if (lastmod) xml += `    <lastmod>${lastmod}</lastmod>\n`;
+        xml += `    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>\n`;
+      }
+
+      for (const post of posts) {
+        const postPath = `/blog/${post.slug}`;
+        const canonical = resolveCanonical(postPath);
+        const lastmod = (post.updatedAt || post.publishedAt) ? new Date((post.updatedAt || post.publishedAt)!).toISOString().split("T")[0] : undefined;
+        xml += `  <url>\n    <loc>${baseUrl}${canonical}</loc>\n`;
+        if (lastmod) xml += `    <lastmod>${lastmod}</lastmod>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+      }
+
+      xml += "</urlset>";
+      res.set("Content-Type", "application/xml");
+      res.send(xml);
+    } catch (err) {
+      console.error("Failed to generate sitemap:", err);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // ---- Robots.txt ----
+  app.get("/robots.txt", (_req, res) => {
+    const baseUrl = (process.env.PUBLIC_SITE_URL || `https://${_req.headers.host}`).replace(/\/$/, "");
+    const content = [
+      "User-agent: *",
+      "Allow: /",
+      "",
+      "Disallow: /admin/",
+      "Disallow: /api/",
+      "",
+      `Sitemap: ${baseUrl}/sitemap.xml`,
+    ].join("\n");
+    res.set("Content-Type", "text/plain");
+    res.send(content);
+  });
+
   let redirectCache: Map<string, { to: string; code: number }> | null = null;
   async function loadRedirects() {
     try {

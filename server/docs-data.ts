@@ -667,5 +667,211 @@ Revision snapshots contain only CMS content data. They do not store:
       updatedAt: now,
       tags: ["security", "revisions", "data-privacy", "access-control"],
     },
+    {
+      category: "SEO",
+      title: "Sitemap & Robots",
+      bodyMarkdown: `The application generates a dynamic \`sitemap.xml\` and static \`robots.txt\` at their standard URL paths.
+
+**Sitemap (\`GET /sitemap.xml\`):**
+- Automatically includes all static routes (homepage, services, pricing, quote, blog listing)
+- Includes all published CMS pages with \`lastmod\` from \`updatedAt\`
+- Includes all published blog posts with \`lastmod\` from \`updatedAt\` or \`publishedAt\`
+- Respects URL redirects: if a page slug has a redirect entry, the sitemap uses the final destination URL as the \`<loc>\`
+- Redirect chains are resolved (A→B→C becomes C)
+- CMS pages can customize \`priority\` and \`changefreq\` via the \`seo.sitemap\` field
+
+**Static Route Priorities:**
+| Route | Priority | Changefreq |
+|-------|----------|------------|
+| / | 1.0 | weekly |
+| /services | 0.8 | monthly |
+| /services/* | 0.7-0.8 | monthly |
+| /pricing | 0.7 | monthly |
+| /quote | 0.8 | monthly |
+| /blog | 0.7 | daily |
+| CMS pages | 0.6 (default) | monthly |
+| Blog posts | 0.6 | weekly |
+
+**Robots.txt (\`GET /robots.txt\`):**
+\`\`\`
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://yourdomain.com/sitemap.xml
+\`\`\`
+
+**Base URL:**
+The sitemap and robots.txt use the \`PUBLIC_SITE_URL\` environment variable for absolute URLs. Falls back to the request \`Host\` header if not set.
+
+**Excluded from Sitemap:**
+- Draft CMS pages
+- Draft blog posts
+- Admin routes (/admin/*)
+- API routes (/api/*)`,
+      updatedAt: now,
+      tags: ["seo", "sitemap", "robots", "crawling", "indexing"],
+    },
+    {
+      category: "SEO",
+      title: "SEO Metadata Injection Rules",
+      bodyMarkdown: `The frontend \`usePageMeta\` hook injects SEO metadata into the document head for each page.
+
+**Injected Tags:**
+- \`<title>\` — Page title
+- \`<meta name="description">\` — Meta description
+- \`<link rel="canonical">\` — Canonical URL (if provided)
+- \`<meta property="og:title">\` — Open Graph title (falls back to page title)
+- \`<meta property="og:description">\` — OG description (falls back to meta description)
+- \`<meta property="og:image">\` — OG image URL
+- \`<meta property="og:type">\` — Always "website"
+- \`<script type="application/ld+json">\` — JSON-LD structured data (if configured)
+
+**OG Image Fallback Chain:**
+1. Explicit \`ogImage\` field from page SEO settings
+2. Hero block's \`imageUrl\` property (if page has a hero block)
+3. Site default (from site settings, if configured)
+4. Empty (no OG image tag injected)
+
+**Canonical URL Rules:**
+- If \`canonicalUrl\` is explicitly set in page SEO, that value is used
+- If not set, canonical is auto-generated from the page slug
+- If the page slug has a redirect entry, the canonical should point to the final destination URL
+- Canonical URLs prevent duplicate content penalties from search engines
+
+**Page Builder SEO Tab:**
+The SEO tab in \`/admin/cms/pages/:id\` provides:
+- SEO Title with character counter (ideal: 30-60 chars)
+- Meta Description with character counter (ideal: 50-160 chars)
+- Canonical URL field (auto-generates if empty)
+- OG Title, Description, and Image fields
+- JSON-LD structured data preset picker
+- "Validate SEO" button that checks all fields for completeness
+
+**SEO Validation Checks:**
+| Field | Pass | Warn | Fail |
+|-------|------|------|------|
+| SEO Title | 30-60 chars | Set but outside range | Missing |
+| Meta Description | 50-160 chars | Set but outside range | Missing |
+| Canonical URL | Valid URL or path | Not set (auto-generates) | — |
+| OG Image | Explicitly set | Falls back to hero image | Missing entirely |
+| OG Title | Explicitly set | Falls back to SEO/page title | Missing all |
+| OG Description | Explicitly set | Falls back to meta desc | Missing all |
+| Robots | Published page | Draft page | — |
+| JSON-LD | Valid preset active | No preset selected | Invalid JSON |`,
+      updatedAt: now,
+      tags: ["seo", "metadata", "og-tags", "canonical", "validation"],
+    },
+    {
+      category: "SEO",
+      title: "JSON-LD Presets",
+      bodyMarkdown: `The page builder SEO tab includes a JSON-LD structured data preset picker for common schema.org types.
+
+**Available Presets:**
+
+**1. LocalBusiness**
+Ideal for the homepage or location-specific landing pages.
+\`\`\`json
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "BrushWhackers",
+  "description": "...",
+  "url": "/",
+  "telephone": "",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Charlotte",
+    "addressRegion": "NC"
+  },
+  "areaServed": {
+    "@type": "GeoCircle",
+    "geoMidpoint": { "latitude": 35.2271, "longitude": -80.8431 },
+    "geoRadius": "80467"
+  }
+}
+\`\`\`
+
+**2. Service**
+For individual service pages (forestry mulching, trail cutting, etc.).
+\`\`\`json
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Forestry Mulching",
+  "description": "...",
+  "provider": { "@type": "LocalBusiness", "name": "BrushWhackers" },
+  "areaServed": { "@type": "City", "name": "Charlotte, NC" }
+}
+\`\`\`
+
+**3. FAQPage**
+Auto-populates from FAQ blocks on the page. Each question/answer pair becomes a schema.org Question entity.
+
+**4. Article**
+For blog-style content pages.
+\`\`\`json
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "...",
+  "description": "...",
+  "author": { "@type": "Organization", "name": "BrushWhackers" }
+}
+\`\`\`
+
+**Workflow:**
+1. Select a preset from the dropdown
+2. The JSON is auto-generated using current page data (title, description, slug)
+3. Edit the generated JSON as needed
+4. Use "Validate" to check JSON syntax
+5. Use "Regenerate" to recreate from current page data
+6. Save the page — JSON-LD is stored in \`seo.schema\`
+
+**Frontend Injection:**
+When a page with JSON-LD is rendered, the \`usePageMeta\` hook injects a \`<script type="application/ld+json">\` tag into the document head. The tag is cleaned up when navigating away from the page.`,
+      updatedAt: now,
+      tags: ["seo", "json-ld", "structured-data", "schema-org", "presets"],
+    },
+    {
+      category: "Integrations",
+      title: "PUBLIC_SITE_URL and Deployment Requirements",
+      bodyMarkdown: `The \`PUBLIC_SITE_URL\` environment variable defines the canonical base URL for the deployed site.
+
+**Purpose:**
+- Used by \`/sitemap.xml\` to generate absolute \`<loc>\` URLs
+- Used by \`/robots.txt\` to generate the \`Sitemap:\` directive
+- Should match the production domain where the site is publicly accessible
+
+**Format:**
+\`\`\`
+PUBLIC_SITE_URL=https://brushwhackers.com
+\`\`\`
+- Must include the protocol (\`https://\`)
+- Must NOT include a trailing slash
+- Should be the bare domain without path
+
+**Fallback Behavior:**
+If \`PUBLIC_SITE_URL\` is not set, the application falls back to using the \`Host\` header from the incoming request prefixed with \`https://\`. This works for development but is unreliable for production (may use internal hostnames or load balancer addresses).
+
+**Setting the Variable:**
+1. Go to the Secrets panel in the Replit project
+2. Add \`PUBLIC_SITE_URL\` with your production domain
+3. The sitemap and robots.txt will immediately use the new value
+
+**When to Set:**
+- Before deploying to production
+- When setting up a custom domain
+- When submitting the sitemap to Google Search Console
+
+**Impact on SEO:**
+- Google requires absolute URLs in sitemaps
+- Incorrect base URL will cause indexing issues
+- The robots.txt Sitemap directive must point to the correct domain`,
+      updatedAt: now,
+      tags: ["deployment", "environment", "domain", "configuration"],
+    },
   ];
 }

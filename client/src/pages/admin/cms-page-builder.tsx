@@ -215,6 +215,10 @@ export default function CmsPageBuilder() {
   const [ogTitle, setOgTitle] = useState("");
   const [ogDescription, setOgDescription] = useState("");
   const [ogImage, setOgImage] = useState("");
+  const [canonicalUrl, setCanonicalUrl] = useState("");
+  const [jsonLdPreset, setJsonLdPreset] = useState("none");
+  const [jsonLdCustom, setJsonLdCustom] = useState("");
+  const [seoValidation, setSeoValidation] = useState<{field: string; status: "pass"|"warn"|"fail"; detail: string}[]>([]);
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragSource, setActiveDragSource] = useState<"canvas" | "library" | null>(null);
@@ -292,6 +296,9 @@ export default function CmsPageBuilder() {
       setOgTitle(seo.ogTitle || seo.og?.title || "");
       setOgDescription(seo.ogDescription || seo.og?.description || "");
       setOgImage(seo.ogImage || seo.og?.image || "");
+      setCanonicalUrl(seo.canonicalUrl || "");
+      setJsonLdPreset(seo.schema?.type || "none");
+      setJsonLdCustom(seo.schema?.jsonLd || "");
       setRestoreConfirmId(null);
       const restoredSnapshot = JSON.stringify({
         title: data.title,
@@ -327,6 +334,9 @@ export default function CmsPageBuilder() {
       setOgTitle(seo.ogTitle || seo.og?.title || "");
       setOgDescription(seo.ogDescription || seo.og?.description || "");
       setOgImage(seo.ogImage || seo.og?.image || "");
+      setCanonicalUrl(seo.canonicalUrl || "");
+      setJsonLdPreset(seo.schema?.type || "none");
+      setJsonLdCustom(seo.schema?.jsonLd || "");
     }
   }, [existingPage, editId]);
 
@@ -337,8 +347,8 @@ export default function CmsPageBuilder() {
   }, [title, slugManual]);
 
   const currentSnapshot = useMemo(
-    () => JSON.stringify({ title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage }),
-    [title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage]
+    () => JSON.stringify({ title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage, canonicalUrl, jsonLdPreset, jsonLdCustom }),
+    [title, slug, description, status, blocks, seoTitle, metaDescription, ogTitle, ogDescription, ogImage, canonicalUrl, jsonLdPreset, jsonLdCustom]
   );
 
   const hasUnsavedChanges = lastSavedSnapshot !== "" && currentSnapshot !== lastSavedSnapshot;
@@ -467,6 +477,124 @@ export default function CmsPageBuilder() {
     return groups;
   }, [libraryBlocks, searchQuery]);
 
+  const JSON_LD_PRESETS: Record<string, { label: string; generate: () => string }> = {
+    LocalBusiness: {
+      label: "Local Business",
+      generate: () => JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": title || "BrushWhackers",
+        "description": metaDescription || description,
+        "url": canonicalUrl || `/${slug}`,
+        "telephone": "",
+        "address": { "@type": "PostalAddress", "addressLocality": "Charlotte", "addressRegion": "NC" },
+        "areaServed": { "@type": "GeoCircle", "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 35.2271, "longitude": -80.8431 }, "geoRadius": "80467" },
+      }, null, 2),
+    },
+    Service: {
+      label: "Service",
+      generate: () => JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": title,
+        "description": metaDescription || description,
+        "provider": { "@type": "LocalBusiness", "name": "BrushWhackers" },
+        "areaServed": { "@type": "City", "name": "Charlotte, NC" },
+        "url": canonicalUrl || `/${slug}`,
+      }, null, 2),
+    },
+    FAQPage: {
+      label: "FAQ Page",
+      generate: () => {
+        const faqBlocks = blocks.filter(b => b.type === "faq");
+        const items = faqBlocks.flatMap(b => {
+          const qas = b.props.items || b.props.questions || [];
+          return qas.map((qa: any) => ({
+            "@type": "Question",
+            "name": qa.question || qa.q || "",
+            "acceptedAnswer": { "@type": "Answer", "text": qa.answer || qa.a || "" },
+          }));
+        });
+        return JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": items.length > 0 ? items : [{ "@type": "Question", "name": "", "acceptedAnswer": { "@type": "Answer", "text": "" } }],
+        }, null, 2);
+      },
+    },
+    Article: {
+      label: "Article",
+      generate: () => JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": seoTitle || title,
+        "description": metaDescription || description,
+        "image": ogImage || "",
+        "author": { "@type": "Organization", "name": "BrushWhackers" },
+        "publisher": { "@type": "Organization", "name": "BrushWhackers" },
+        "url": canonicalUrl || `/${slug}`,
+      }, null, 2),
+    },
+  };
+
+  function runSeoValidation() {
+    const results: {field: string; status: "pass"|"warn"|"fail"; detail: string}[] = [];
+    results.push({
+      field: "SEO Title",
+      status: seoTitle ? (seoTitle.length >= 30 && seoTitle.length <= 60 ? "pass" : "warn") : "fail",
+      detail: seoTitle ? `${seoTitle.length} chars (ideal: 30-60)` : "Missing",
+    });
+    results.push({
+      field: "Meta Description",
+      status: metaDescription ? (metaDescription.length >= 50 && metaDescription.length <= 160 ? "pass" : "warn") : "fail",
+      detail: metaDescription ? `${metaDescription.length} chars (ideal: 50-160)` : "Missing",
+    });
+    results.push({
+      field: "Canonical URL",
+      status: canonicalUrl ? (canonicalUrl.startsWith("http") || canonicalUrl.startsWith("/") ? "pass" : "warn") : "warn",
+      detail: canonicalUrl ? canonicalUrl : "Not set (will auto-generate)",
+    });
+    results.push({
+      field: "OG Image",
+      status: ogImage ? "pass" : (blocks.some(b => b.type === "hero" && b.props.imageUrl) ? "warn" : "fail"),
+      detail: ogImage ? "Set" : (blocks.some(b => b.type === "hero" && b.props.imageUrl) ? "Will fallback to hero image" : "Missing for social sharing"),
+    });
+    results.push({
+      field: "OG Title",
+      status: ogTitle ? "pass" : (seoTitle || title ? "warn" : "fail"),
+      detail: ogTitle ? `Set (${ogTitle.length} chars)` : "Will fallback to SEO title or page title",
+    });
+    results.push({
+      field: "OG Description",
+      status: ogDescription ? "pass" : (metaDescription ? "warn" : "fail"),
+      detail: ogDescription ? `Set (${ogDescription.length} chars)` : (metaDescription ? "Will fallback to meta description" : "Missing"),
+    });
+    const hasNoIndex = status === "draft";
+    results.push({
+      field: "Robots/Indexability",
+      status: hasNoIndex ? "warn" : "pass",
+      detail: hasNoIndex ? "Page is draft — not indexable" : "Page is published and indexable",
+    });
+    if (jsonLdPreset !== "none") {
+      let jsonValid = true;
+      if (jsonLdCustom) {
+        try { JSON.parse(jsonLdCustom); } catch { jsonValid = false; }
+      }
+      results.push({
+        field: "JSON-LD Schema",
+        status: jsonValid ? "pass" : "fail",
+        detail: jsonValid ? `${jsonLdPreset} preset active` : "Invalid JSON in custom schema",
+      });
+    } else {
+      results.push({
+        field: "JSON-LD Schema",
+        status: "warn",
+        detail: "No structured data preset selected",
+      });
+    }
+    setSeoValidation(results);
+  }
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -476,7 +604,11 @@ export default function CmsPageBuilder() {
         status,
         pageType: "page" as const,
         blocks,
-        seo: { title: seoTitle, metaDescription, ogTitle, ogDescription, ogImage },
+        seo: {
+          title: seoTitle, metaDescription, ogTitle, ogDescription, ogImage,
+          canonicalUrl: canonicalUrl || undefined,
+          schema: jsonLdPreset !== "none" ? { enabled: true, type: jsonLdPreset, jsonLd: jsonLdCustom || undefined } : undefined,
+        },
       };
       if (editId) {
         const res = await apiRequest("PATCH", `/api/admin/cms/pages/${editId}`, payload);
@@ -897,6 +1029,33 @@ export default function CmsPageBuilder() {
                 </TabsContent>
 
                 <TabsContent value="seo" className="flex-1 overflow-y-auto p-3 mt-0 space-y-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold">SEO Settings</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={runSeoValidation}
+                      data-testid="button-validate-seo"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                      Validate SEO
+                    </Button>
+                  </div>
+
+                  {seoValidation.length > 0 && (
+                    <Card className="p-3 space-y-1.5">
+                      {seoValidation.map((v, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs" data-testid={`seo-validation-${v.field.toLowerCase().replace(/\s+/g, "-")}`}>
+                          {v.status === "pass" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                          {v.status === "warn" && <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
+                          {v.status === "fail" && <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />}
+                          <span className="font-medium">{v.field}:</span>
+                          <span className="text-muted-foreground">{v.detail}</span>
+                        </div>
+                      ))}
+                    </Card>
+                  )}
+
                   <div>
                     <Label htmlFor="seo-title" className="text-xs">SEO Title</Label>
                     <Input
@@ -906,6 +1065,7 @@ export default function CmsPageBuilder() {
                       placeholder="Page title for search engines"
                       data-testid="input-seo-title"
                     />
+                    {seoTitle && <span className="text-xs text-muted-foreground">{seoTitle.length}/60 chars</span>}
                   </div>
                   <div>
                     <Label htmlFor="seo-meta-desc" className="text-xs">Meta Description</Label>
@@ -917,6 +1077,18 @@ export default function CmsPageBuilder() {
                       rows={3}
                       data-testid="textarea-seo-meta-description"
                     />
+                    {metaDescription && <span className="text-xs text-muted-foreground">{metaDescription.length}/160 chars</span>}
+                  </div>
+                  <div>
+                    <Label htmlFor="seo-canonical" className="text-xs">Canonical URL</Label>
+                    <Input
+                      id="seo-canonical"
+                      value={canonicalUrl}
+                      onChange={(e) => setCanonicalUrl(e.target.value)}
+                      placeholder="https://... (auto-generated if empty)"
+                      data-testid="input-seo-canonical"
+                    />
+                    <span className="text-xs text-muted-foreground">Leave empty to auto-generate from slug</span>
                   </div>
                   <div>
                     <Label htmlFor="seo-og-title" className="text-xs">OG Title</Label>
@@ -945,9 +1117,79 @@ export default function CmsPageBuilder() {
                       id="seo-og-image"
                       value={ogImage}
                       onChange={(e) => setOgImage(e.target.value)}
-                      placeholder="https://..."
+                      placeholder="https://... (falls back to hero image)"
                       data-testid="input-seo-og-image"
                     />
+                    {!ogImage && blocks.some(b => b.type === "hero" && b.props.imageUrl) && (
+                      <span className="text-xs text-muted-foreground">Will use hero image as fallback</span>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <Label className="text-xs font-semibold">JSON-LD Structured Data</Label>
+                    <Select value={jsonLdPreset} onValueChange={(val) => {
+                      setJsonLdPreset(val);
+                      if (val !== "none" && JSON_LD_PRESETS[val]) {
+                        setJsonLdCustom(JSON_LD_PRESETS[val].generate());
+                      } else {
+                        setJsonLdCustom("");
+                      }
+                    }}>
+                      <SelectTrigger className="mt-1" data-testid="select-jsonld-preset">
+                        <SelectValue placeholder="Select preset..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {Object.entries(JSON_LD_PRESETS).map(([key, preset]) => (
+                          <SelectItem key={key} value={key}>{preset.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {jsonLdPreset !== "none" && (
+                      <div className="mt-2">
+                        <Label htmlFor="jsonld-custom" className="text-xs">Schema JSON</Label>
+                        <Textarea
+                          id="jsonld-custom"
+                          value={jsonLdCustom}
+                          onChange={(e) => setJsonLdCustom(e.target.value)}
+                          rows={8}
+                          className="font-mono text-xs"
+                          data-testid="textarea-jsonld-custom"
+                        />
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (JSON_LD_PRESETS[jsonLdPreset]) {
+                                setJsonLdCustom(JSON_LD_PRESETS[jsonLdPreset].generate());
+                                toast({ title: "JSON-LD regenerated from preset" });
+                              }
+                            }}
+                            data-testid="button-regenerate-jsonld"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Regenerate
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              try {
+                                JSON.parse(jsonLdCustom);
+                                toast({ title: "JSON-LD is valid" });
+                              } catch {
+                                toast({ title: "Invalid JSON", variant: "destructive" });
+                              }
+                            }}
+                            data-testid="button-validate-jsonld"
+                          >
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Validate
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
 
