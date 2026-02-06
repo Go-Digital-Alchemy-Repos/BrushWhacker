@@ -16,11 +16,19 @@ import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminLeads from "@/pages/admin/leads";
 import LeadDetail from "@/pages/admin/lead-detail";
-import AdminCMS from "@/pages/admin/cms";
+import CmsPageView from "@/pages/cms-page";
+import AdminCmsHome from "@/pages/admin/cms-home";
+import AdminCmsPages from "@/pages/admin/cms-pages";
+import AdminCmsPageBuilder from "@/pages/admin/cms-page-builder";
 import AdminBlogList from "@/pages/admin/blog-list";
 import AdminBlogEditor from "@/pages/admin/blog-editor";
 import AdminBranding from "@/pages/admin/branding";
 import AdminDocs from "@/pages/admin/docs";
+import AdminCmsTemplates from "@/pages/admin/cms-templates";
+import AdminCmsBlocks from "@/pages/admin/cms-blocks";
+import AdminCmsMedia from "@/pages/admin/cms-media";
+import AdminCmsThemes from "@/pages/admin/cms-themes";
+import AdminCmsRedirects from "@/pages/admin/cms-redirects";
 
 function Router() {
   return (
@@ -32,13 +40,22 @@ function Router() {
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/quote" component={Quote} />
+      <Route path="/p/:slug" component={CmsPageView} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={AdminLeads} />
       <Route path="/admin/leads/:id" component={LeadDetail} />
-      <Route path="/admin/cms" component={AdminCMS} />
+      <Route path="/admin/cms" component={AdminCmsHome} />
+      <Route path="/admin/cms/pages" component={AdminCmsPages} />
+      <Route path="/admin/cms/pages/new" component={AdminCmsPageBuilder} />
+      <Route path="/admin/cms/pages/:id" component={AdminCmsPageBuilder} />
       <Route path="/admin/cms/blog" component={AdminBlogList} />
       <Route path="/admin/cms/blog/:id" component={AdminBlogEditor} />
+      <Route path="/admin/cms/templates" component={AdminCmsTemplates} />
+      <Route path="/admin/cms/blocks" component={AdminCmsBlocks} />
+      <Route path="/admin/cms/media" component={AdminCmsMedia} />
+      <Route path="/admin/cms/themes" component={AdminCmsThemes} />
+      <Route path="/admin/cms/redirects" component={AdminCmsRedirects} />
       <Route path="/admin/branding" component={AdminBranding} />
       <Route path="/admin/docs" component={AdminDocs} />
       <Route component={NotFound} />

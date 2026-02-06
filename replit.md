@@ -1,10 +1,10 @@
 # BrushWhackers - Forestry Mulching & Land Clearing
 
 ## Overview
-BrushWhackers is a full-stack web application for a professional forestry mulching and land clearing business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management, blog CMS, and site-wide branding customization. Content style follows BrushWorksco.com approach with problem/solution messaging and forestry mulching focus.
+BrushWhackers is a full-stack web application for a professional forestry mulching and land clearing business targeting the Charlotte, North Carolina area. Built with React + Vite frontend, Node/Express backend, and PostgreSQL database. Includes a complete admin portal with CRM lead management, blog CMS, site-wide branding customization, and a comprehensive CMS with drag-and-drop page builder, block library, templates, media library, theme presets, and URL redirects management. Content style follows BrushWorksco.com approach with problem/solution messaging and forestry mulching focus.
 
 ## Current Phase
-Phase 7: Content Overhaul (BrushWorksco style)
+Phase 8: CMS & Page Builder
 
 ## Tech Stack
 - **Frontend**: React + Vite + TypeScript + Wouter (routing) + TanStack Query

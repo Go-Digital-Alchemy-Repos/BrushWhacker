@@ -5,7 +5,14 @@ import {
   type LeadActivity, type InsertLeadActivity,
   type BlogPost, type InsertBlogPost,
   type SiteSettings, type UpdateSiteSettings,
+  type CmsPage, type InsertCmsPage, type UpdateCmsPage,
+  type CmsTemplate, type InsertCmsTemplate, type UpdateCmsTemplate,
+  type CmsBlock, type InsertCmsBlock,
+  type CmsMediaItem, type InsertCmsMedia,
+  type ThemePreset, type InsertThemePreset,
+  type CmsRedirect, type InsertCmsRedirect,
   leads, leadNotes, leadActivity, blogPosts, siteSettings,
+  cmsPages, cmsTemplates, cmsBlockLibrary, cmsMedia, themePresets, cmsRedirects,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -54,6 +61,28 @@ export interface IStorage {
   getRelatedPosts(postId: string, category: string, limit?: number): Promise<BlogPost[]>;
   getSiteSettings(): Promise<SiteSettings>;
   updateSiteSettings(data: UpdateSiteSettings): Promise<SiteSettings>;
+  getCmsPages(filters?: { status?: string; pageType?: string; search?: string }): Promise<CmsPage[]>;
+  getCmsPage(id: string): Promise<CmsPage | undefined>;
+  getCmsPageBySlug(slug: string): Promise<CmsPage | undefined>;
+  createCmsPage(data: InsertCmsPage): Promise<CmsPage>;
+  updateCmsPage(id: string, data: Partial<UpdateCmsPage>): Promise<CmsPage | undefined>;
+  deleteCmsPage(id: string): Promise<boolean>;
+  getCmsTemplates(): Promise<CmsTemplate[]>;
+  getCmsTemplate(id: string): Promise<CmsTemplate | undefined>;
+  createCmsTemplate(data: InsertCmsTemplate): Promise<CmsTemplate>;
+  updateCmsTemplate(id: string, data: Partial<UpdateCmsTemplate>): Promise<CmsTemplate | undefined>;
+  deleteCmsTemplate(id: string): Promise<boolean>;
+  getCmsBlocks(): Promise<CmsBlock[]>;
+  createCmsBlock(data: InsertCmsBlock): Promise<CmsBlock>;
+  getCmsMedia(filters?: { search?: string }): Promise<CmsMediaItem[]>;
+  createCmsMedia(data: InsertCmsMedia): Promise<CmsMediaItem>;
+  deleteCmsMedia(id: string): Promise<boolean>;
+  getThemePresets(): Promise<ThemePreset[]>;
+  getActiveThemePreset(): Promise<ThemePreset | undefined>;
+  activateThemePreset(id: string): Promise<ThemePreset>;
+  getCmsRedirects(): Promise<CmsRedirect[]>;
+  createCmsRedirect(data: InsertCmsRedirect): Promise<CmsRedirect>;
+  deleteCmsRedirect(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +334,143 @@ export class DatabaseStorage implements IStorage {
       .where(eq(siteSettings.id, existing.id))
       .returning();
     return updated;
+  }
+
+  async getCmsPages(filters: { status?: string; pageType?: string; search?: string } = {}): Promise<CmsPage[]> {
+    const conditions: any[] = [];
+    if (filters.status) conditions.push(eq(cmsPages.status, filters.status));
+    if (filters.pageType) conditions.push(eq(cmsPages.pageType, filters.pageType));
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(or(ilike(cmsPages.title, term), ilike(cmsPages.slug, term)));
+    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    return db.select().from(cmsPages).where(whereClause).orderBy(desc(cmsPages.updatedAt));
+  }
+
+  async getCmsPage(id: string): Promise<CmsPage | undefined> {
+    const [page] = await db.select().from(cmsPages).where(eq(cmsPages.id, id));
+    return page;
+  }
+
+  async getCmsPageBySlug(slug: string): Promise<CmsPage | undefined> {
+    const [page] = await db.select().from(cmsPages).where(eq(cmsPages.slug, slug));
+    return page;
+  }
+
+  async createCmsPage(data: InsertCmsPage): Promise<CmsPage> {
+    const [created] = await db.insert(cmsPages).values(data).returning();
+    return created;
+  }
+
+  async updateCmsPage(id: string, data: Partial<UpdateCmsPage>): Promise<CmsPage | undefined> {
+    const { publishedAt, ...rest } = data;
+    const updateData: any = { ...rest, updatedAt: new Date() };
+    if (publishedAt !== undefined) {
+      updateData.publishedAt = publishedAt ? new Date(publishedAt) : null;
+    }
+    const [updated] = await db
+      .update(cmsPages)
+      .set(updateData)
+      .where(eq(cmsPages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCmsPage(id: string): Promise<boolean> {
+    const result = await db.delete(cmsPages).where(eq(cmsPages.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getCmsTemplates(): Promise<CmsTemplate[]> {
+    return db.select().from(cmsTemplates).orderBy(desc(cmsTemplates.updatedAt));
+  }
+
+  async getCmsTemplate(id: string): Promise<CmsTemplate | undefined> {
+    const [template] = await db.select().from(cmsTemplates).where(eq(cmsTemplates.id, id));
+    return template;
+  }
+
+  async createCmsTemplate(data: InsertCmsTemplate): Promise<CmsTemplate> {
+    const [created] = await db.insert(cmsTemplates).values(data).returning();
+    return created;
+  }
+
+  async updateCmsTemplate(id: string, data: Partial<UpdateCmsTemplate>): Promise<CmsTemplate | undefined> {
+    const updateData = { ...data, updatedAt: new Date() };
+    const [updated] = await db
+      .update(cmsTemplates)
+      .set(updateData)
+      .where(eq(cmsTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCmsTemplate(id: string): Promise<boolean> {
+    const result = await db.delete(cmsTemplates).where(eq(cmsTemplates.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getCmsBlocks(): Promise<CmsBlock[]> {
+    return db.select().from(cmsBlockLibrary).orderBy(asc(cmsBlockLibrary.category), asc(cmsBlockLibrary.name));
+  }
+
+  async createCmsBlock(data: InsertCmsBlock): Promise<CmsBlock> {
+    const [created] = await db.insert(cmsBlockLibrary).values(data).returning();
+    return created;
+  }
+
+  async getCmsMedia(filters: { search?: string } = {}): Promise<CmsMediaItem[]> {
+    const conditions: any[] = [];
+    if (filters.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(or(ilike(cmsMedia.alt, term), ilike(cmsMedia.title, term)));
+    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    return db.select().from(cmsMedia).where(whereClause).orderBy(desc(cmsMedia.createdAt));
+  }
+
+  async createCmsMedia(data: InsertCmsMedia): Promise<CmsMediaItem> {
+    const [created] = await db.insert(cmsMedia).values(data).returning();
+    return created;
+  }
+
+  async deleteCmsMedia(id: string): Promise<boolean> {
+    const result = await db.delete(cmsMedia).where(eq(cmsMedia.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getThemePresets(): Promise<ThemePreset[]> {
+    return db.select().from(themePresets).orderBy(asc(themePresets.name));
+  }
+
+  async getActiveThemePreset(): Promise<ThemePreset | undefined> {
+    const [preset] = await db.select().from(themePresets).where(eq(themePresets.isActive, true));
+    return preset;
+  }
+
+  async activateThemePreset(id: string): Promise<ThemePreset> {
+    await db.update(themePresets).set({ isActive: false });
+    const [activated] = await db
+      .update(themePresets)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(eq(themePresets.id, id))
+      .returning();
+    return activated;
+  }
+
+  async getCmsRedirects(): Promise<CmsRedirect[]> {
+    return db.select().from(cmsRedirects).orderBy(desc(cmsRedirects.createdAt));
+  }
+
+  async createCmsRedirect(data: InsertCmsRedirect): Promise<CmsRedirect> {
+    const [created] = await db.insert(cmsRedirects).values(data).returning();
+    return created;
+  }
+
+  async deleteCmsRedirect(id: string): Promise<boolean> {
+    const result = await db.delete(cmsRedirects).where(eq(cmsRedirects.id, id)).returning();
+    return result.length > 0;
   }
 }
 

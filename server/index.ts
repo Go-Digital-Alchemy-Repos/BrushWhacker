@@ -4,6 +4,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { seedBlogPosts } from "./seed-blog";
+import { seedCmsData } from "./seed-cms";
 
 const app = express();
 const httpServer = createServer(app);
@@ -67,6 +68,7 @@ app.use((req, res, next) => {
   await registerRoutes(httpServer, app);
 
   seedBlogPosts().catch((err) => console.error("Blog seed error:", err));
+  seedCmsData().catch((err) => console.error("CMS seed error:", err));
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, serial, jsonb, integer, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, serial, jsonb, integer, uuid, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -173,3 +173,220 @@ export const updateSiteSettingsSchema = z.object({
 
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type UpdateSiteSettings = z.infer<typeof updateSiteSettingsSchema>;
+
+export const CMS_PAGE_TYPES = ["page", "service", "landing"] as const;
+export type CmsPageType = (typeof CMS_PAGE_TYPES)[number];
+
+export const cmsPages = pgTable("cms_pages", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  status: text("status").notNull().default("draft"),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  pageType: text("page_type").notNull().default("page"),
+  templateId: uuid("template_id"),
+  blocks: jsonb("blocks").notNull().default([]),
+  seo: jsonb("seo").notNull().default({}),
+  publishedAt: timestamp("published_at"),
+});
+
+export const insertCmsPageSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  pageType: z.enum(CMS_PAGE_TYPES).optional(),
+  templateId: z.string().uuid().nullable().optional(),
+  blocks: z.array(z.any()).optional(),
+  seo: z.record(z.any()).optional(),
+  status: z.enum(POST_STATUSES).optional(),
+});
+
+export const updateCmsPageSchema = z.object({
+  title: z.string().min(1).optional(),
+  slug: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  pageType: z.enum(CMS_PAGE_TYPES).optional(),
+  templateId: z.string().uuid().nullable().optional(),
+  blocks: z.array(z.any()).optional(),
+  seo: z.record(z.any()).optional(),
+  status: z.enum(POST_STATUSES).optional(),
+  publishedAt: z.string().nullable().optional(),
+});
+
+export type CmsPage = typeof cmsPages.$inferSelect;
+export type InsertCmsPage = z.infer<typeof insertCmsPageSchema>;
+export type UpdateCmsPage = z.infer<typeof updateCmsPageSchema>;
+
+export const cmsTemplates = pgTable("cms_templates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  blocks: jsonb("blocks").notNull().default([]),
+  seoDefaults: jsonb("seo_defaults").notNull().default({}),
+  status: text("status").notNull().default("active"),
+});
+
+export const insertCmsTemplateSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  blocks: z.array(z.any()).optional(),
+  seoDefaults: z.record(z.any()).optional(),
+  status: z.string().optional(),
+});
+
+export const updateCmsTemplateSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  blocks: z.array(z.any()).optional(),
+  seoDefaults: z.record(z.any()).optional(),
+  status: z.string().optional(),
+});
+
+export type CmsTemplate = typeof cmsTemplates.$inferSelect;
+export type InsertCmsTemplate = z.infer<typeof insertCmsTemplateSchema>;
+export type UpdateCmsTemplate = z.infer<typeof updateCmsTemplateSchema>;
+
+export const cmsBlockLibrary = pgTable("cms_block_library", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  icon: text("icon"),
+  description: text("description"),
+  defaultProps: jsonb("default_props").notNull().default({}),
+  schema: jsonb("schema").notNull().default({}),
+  isSystem: boolean("is_system").notNull().default(true),
+});
+
+export type CmsBlock = typeof cmsBlockLibrary.$inferSelect;
+
+export const insertCmsBlockSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  category: z.string().min(1),
+  icon: z.string().optional(),
+  description: z.string().optional(),
+  defaultProps: z.record(z.any()).optional(),
+  schema: z.record(z.any()).optional(),
+  isSystem: z.boolean().optional(),
+});
+
+export type InsertCmsBlock = z.infer<typeof insertCmsBlockSchema>;
+
+export const cmsMedia = pgTable("cms_media", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  url: text("url").notNull(),
+  alt: text("alt"),
+  title: text("title"),
+  width: integer("width"),
+  height: integer("height"),
+  mimeType: text("mime_type"),
+  sizeBytes: integer("size_bytes"),
+  tags: jsonb("tags").notNull().default([]),
+});
+
+export type CmsMediaItem = typeof cmsMedia.$inferSelect;
+
+export const insertCmsMediaSchema = z.object({
+  url: z.string().url(),
+  alt: z.string().optional(),
+  title: z.string().optional(),
+  width: z.number().int().optional(),
+  height: z.number().int().optional(),
+  mimeType: z.string().optional(),
+  sizeBytes: z.number().int().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export type InsertCmsMedia = z.infer<typeof insertCmsMediaSchema>;
+
+export const themePresets = pgTable("theme_presets", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  tokens: jsonb("tokens").notNull(),
+  isSystem: boolean("is_system").notNull().default(true),
+  isActive: boolean("is_active").notNull().default(false),
+});
+
+export type ThemePreset = typeof themePresets.$inferSelect;
+
+export const insertThemePresetSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  tokens: z.record(z.any()),
+  isSystem: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type InsertThemePreset = z.infer<typeof insertThemePresetSchema>;
+
+export const cmsRedirects = pgTable("cms_redirects", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  fromPath: text("from_path").notNull().unique(),
+  toPath: text("to_path").notNull(),
+  code: integer("code").notNull().default(301),
+});
+
+export type CmsRedirect = typeof cmsRedirects.$inferSelect;
+
+export const insertCmsRedirectSchema = z.object({
+  fromPath: z.string().min(1),
+  toPath: z.string().min(1),
+  code: z.number().int().optional(),
+});
+
+export type InsertCmsRedirect = z.infer<typeof insertCmsRedirectSchema>;
+
+export interface BlockInstance {
+  id: string;
+  type: string;
+  props: Record<string, any>;
+  style?: Record<string, any>;
+  meta?: {
+    label?: string;
+    hidden?: boolean;
+  };
+}
+
+export interface PageSeo {
+  title?: string;
+  description?: string;
+  canonicalUrl?: string;
+  robots?: string;
+  og?: {
+    title?: string;
+    description?: string;
+    image?: string;
+    type?: string;
+    locale?: string;
+  };
+  twitter?: {
+    card?: string;
+    title?: string;
+    description?: string;
+    image?: string;
+  };
+  schema?: {
+    enabled?: boolean;
+    type?: string;
+    jsonLd?: string;
+  };
+  sitemap?: {
+    priority?: number;
+    changefreq?: string;
+  };
+}

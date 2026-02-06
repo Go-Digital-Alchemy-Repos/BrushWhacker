@@ -5,6 +5,7 @@ import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPos
 import { z } from "zod";
 import passport from "passport";
 import { requireAdmin } from "./auth";
+import { registerCmsRoutes } from "./cms-routes";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000;
@@ -445,11 +446,38 @@ export async function registerRoutes(
     }
   });
 
+  registerCmsRoutes(app);
+
+  let redirectCache: Map<string, { to: string; code: number }> | null = null;
+  async function loadRedirects() {
+    try {
+      const redirects = await storage.getCmsRedirects();
+      const map = new Map<string, { to: string; code: number }>();
+      for (const r of redirects) {
+        map.set(r.fromPath, { to: r.toPath, code: r.code });
+      }
+      redirectCache = map;
+    } catch {}
+  }
+  loadRedirects();
+  setInterval(loadRedirects, 60000);
+
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    if (redirectCache) {
+      const match = redirectCache.get(req.path);
+      if (match) {
+        return res.redirect(match.code, match.to);
+      }
+    }
+    next();
+  });
+
   app.get("/api/admin/docs", requireAdmin, (_req, res) => {
     res.json({
-      phase: "Phase 6: Branding Settings",
+      phase: "Phase 8: CMS & Page Builder",
       overview:
-        "BrushWhackers is a full-stack web application for a land clearing and brush removal business targeting the Charlotte, North Carolina area. Phase 6 adds site-wide branding settings managed through the admin portal, with live preview and automatic CSS variable injection for theme customization.",
+        "BrushWhackers is a full-stack web application for a land clearing and brush removal business targeting the Charlotte, North Carolina area. Includes a comprehensive CMS with drag-and-drop page builder, block library, reusable templates, media library, theme presets, URL redirects, blog CMS, branding settings, and CRM lead management.",
       authentication: {
         method: "Session-based with Passport.js LocalStrategy",
         adminUser: "Single admin user authenticated via ADMIN_PASSWORD environment variable",
@@ -467,7 +495,15 @@ export async function registerRoutes(
         { path: "/admin", description: "Admin dashboard with pipeline stats" },
         { path: "/admin/leads", description: "CRM leads list with filters, search, pagination" },
         { path: "/admin/leads/:id", description: "Lead detail with status management, notes, activity" },
-        { path: "/admin/cms", description: "Content manager shell" },
+        { path: "/admin/cms", description: "CMS home - tool library grid with links to all CMS features" },
+        { path: "/admin/cms/pages", description: "CMS pages list with status/type filters" },
+        { path: "/admin/cms/pages/new", description: "Page builder - drag-and-drop page creation" },
+        { path: "/admin/cms/pages/:id", description: "Page builder - edit existing page" },
+        { path: "/admin/cms/templates", description: "Reusable page templates" },
+        { path: "/admin/cms/blocks", description: "Block library browser grouped by category" },
+        { path: "/admin/cms/media", description: "Media library with image management" },
+        { path: "/admin/cms/themes", description: "Theme presets with activate/preview" },
+        { path: "/admin/cms/redirects", description: "URL redirect management (301/302)" },
         { path: "/admin/cms/blog", description: "Blog CMS list with filters" },
         { path: "/admin/cms/blog/:id", description: "Blog editor with markdown preview" },
         { path: "/admin/branding", description: "Branding settings with live preview" },
@@ -503,6 +539,26 @@ export async function registerRoutes(
         { method: "GET", path: "/api/admin/blog/:id", description: "Get blog post by ID" },
         { method: "PATCH", path: "/api/admin/blog/:id", description: "Update blog post" },
         { method: "DELETE", path: "/api/admin/blog/:id", description: "Delete blog post" },
+        { method: "GET", path: "/api/admin/cms/pages", description: "List CMS pages with status/type/search filters" },
+        { method: "POST", path: "/api/admin/cms/pages", description: "Create CMS page" },
+        { method: "GET", path: "/api/admin/cms/pages/:id", description: "Get CMS page by ID" },
+        { method: "PATCH", path: "/api/admin/cms/pages/:id", description: "Update CMS page" },
+        { method: "DELETE", path: "/api/admin/cms/pages/:id", description: "Delete CMS page" },
+        { method: "GET", path: "/api/admin/cms/templates", description: "List CMS templates" },
+        { method: "POST", path: "/api/admin/cms/templates", description: "Create CMS template" },
+        { method: "GET", path: "/api/admin/cms/templates/:id", description: "Get CMS template by ID" },
+        { method: "PATCH", path: "/api/admin/cms/templates/:id", description: "Update CMS template" },
+        { method: "DELETE", path: "/api/admin/cms/templates/:id", description: "Delete CMS template" },
+        { method: "GET", path: "/api/admin/cms/blocks", description: "List block library entries" },
+        { method: "POST", path: "/api/admin/cms/blocks", description: "Create custom block definition" },
+        { method: "GET", path: "/api/admin/cms/media", description: "List media items" },
+        { method: "POST", path: "/api/admin/cms/media", description: "Add media item" },
+        { method: "DELETE", path: "/api/admin/cms/media/:id", description: "Delete media item" },
+        { method: "GET", path: "/api/admin/cms/themes", description: "List theme presets" },
+        { method: "POST", path: "/api/admin/cms/themes/:id/activate", description: "Activate a theme preset" },
+        { method: "GET", path: "/api/admin/cms/redirects", description: "List URL redirects" },
+        { method: "POST", path: "/api/admin/cms/redirects", description: "Create URL redirect" },
+        { method: "DELETE", path: "/api/admin/cms/redirects/:id", description: "Delete URL redirect" },
         { method: "GET", path: "/api/admin/docs", description: "Project documentation JSON" },
       ],
       databaseSchema: {
@@ -512,6 +568,12 @@ export async function registerRoutes(
         lead_activity: "id (serial PK), leadId, type (STATUS_CHANGE|NOTE_ADDED|ASSIGNED|EXPORTED), payload (jsonb), createdAt",
         blog_posts: "id (UUID PK), slug (unique), title, excerpt, content (markdown), featuredImageUrl, category, tags (text[]), publishedAt, updatedAt, status (draft|published)",
         site_settings: "id (serial PK), companyName, phone, email, serviceArea, logoUrl, primaryColor (HSL), secondaryColor (HSL), fontFamily, ctaText, socialFacebook, socialInstagram, socialYoutube, socialGoogle, updatedAt",
+        cms_pages: "id (UUID PK), slug (unique), title, description, pageType (page|service|landing), templateId, blocks (jsonb BlockInstance[]), seo (jsonb), status (draft|published), publishedAt, createdAt, updatedAt",
+        cms_templates: "id (UUID PK), name, description, blocks (jsonb BlockInstance[]), status (active|archived), createdAt, updatedAt",
+        cms_block_library: "id (UUID PK), key (unique), name, category, icon, description, isSystem, defaultProps (jsonb), schema (jsonb), createdAt",
+        cms_media: "id (UUID PK), url, alt, title, mimeType, sizeBytes, uploadedBy, createdAt",
+        theme_presets: "id (UUID PK), key (unique), name, description, isSystem, isActive, tokens (jsonb {colors, font, radius, shadow, components}), createdAt",
+        cms_redirects: "id (UUID PK), fromPath (unique), toPath, code (301|302), createdAt",
       },
       brandingSystem: {
         settingsTable: "Single-row site_settings table stores all branding values",
@@ -520,6 +582,16 @@ export async function registerRoutes(
         defaults: "Safe defaults applied if settings row missing: BrushWhackers, warm brown primary, sage green secondary, Inter font",
         livePreview: "Admin branding page includes a live preview card showing how changes will appear across the site",
         appliedLocations: "Settings are applied to: TopNav (logo + company name + CTA text), Footer (contact info + social links + company name), StickyQuoteButton (CTA text), CSS variables (primary color)",
+      },
+      cmsSystem: {
+        overview: "Comprehensive CMS with drag-and-drop page builder, block library, templates, media management, theme presets, and URL redirects",
+        pageBuilder: "Three-panel editor: block library sidebar (left), drag-and-drop canvas (center), inspector/SEO tabs (right). Uses @dnd-kit for drag-and-drop.",
+        blockLibrary: "10 system blocks: hero, rich_text, image_banner, feature_grid, service_cards, testimonial_row, cta_band, faq, pricing_table, contact_cta. Custom blocks can be created.",
+        templates: "Reusable page templates containing block configurations. Can be applied when creating new pages.",
+        mediaLibrary: "Stores external image URLs with alt text and title for easy reuse across pages.",
+        themePresets: "10 pre-built themes (Earth Pro active by default). Each theme stores color tokens, font, radius, shadow, and component style settings.",
+        redirects: "URL redirect management with 301/302 support. Cached in memory with 60-second refresh interval.",
+        blockInstanceFormat: "{ id: UUID, type: string, props: {}, style?: {}, meta?: { label?, hidden? } }",
       },
     });
   });
