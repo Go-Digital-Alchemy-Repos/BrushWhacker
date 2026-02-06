@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { STOCK_IMAGES } from "@/lib/stock-images";
 import { Calendar, ArrowRight } from "lucide-react";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 const posts = [
   {
@@ -41,6 +42,11 @@ const posts = [
 ];
 
 export default function Blog() {
+  usePageMeta({
+    title: "Blog & Resources | BrushWhackers Charlotte, NC",
+    description: "Expert tips, guides, and insights about land clearing, brush removal, forestry mulching, and property management in the Charlotte, NC area.",
+  });
+
   return (
     <SiteLayout>
       <section className="py-16 sm:py-20">

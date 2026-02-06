@@ -5,8 +5,14 @@ import { SiteLayout } from "@/components/layout/site-layout";
 import { SERVICES } from "@/lib/services-data";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { STOCK_IMAGES } from "@/lib/stock-images";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function Services() {
+  usePageMeta({
+    title: "Land Clearing Services | BrushWhackers Charlotte, NC",
+    description: "Explore BrushWhackers services: land clearing, brush removal, forestry mulching, lot clearing, stump grinding, driveway and trail cutting, and storm cleanup in the Charlotte area.",
+  });
+
   return (
     <SiteLayout>
       <section className="relative overflow-hidden">
@@ -17,11 +23,16 @@ export default function Services() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-services-title">
-            Our Services
+            Land Clearing Services in the Charlotte, NC Area
           </h1>
           <p className="mt-4 text-gray-300 max-w-2xl mx-auto text-lg">
-            Professional land clearing and brush removal solutions for the Charlotte, NC area.
+            BrushWhackers offers a full range of land clearing and brush management services across Charlotte, Mecklenburg County, Union County, Cabarrus County, and surrounding areas. Whether you need a fence line cleaned up or a multi-acre lot cleared, we have the right equipment and experience. Tell us about your project and get a fast quote.
           </p>
+          <Link href="/quote">
+            <Button size="lg" className="mt-6 gap-2" data-testid="services-hero-cta">
+              Get a Fast Quote <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -39,9 +50,9 @@ export default function Services() {
                 </div>
                 <div className={`p-6 sm:p-8 flex flex-col justify-center space-y-4 ${i % 2 === 1 ? "md:[direction:ltr]" : ""}`}>
                   <h2 className="text-2xl font-bold">{service.title}</h2>
-                  <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                  <p className="text-muted-foreground leading-relaxed">{service.shortDesc}</p>
                   <ul className="space-y-2">
-                    {service.features.slice(0, 3).map((f) => (
+                    {service.bestFor.slice(0, 3).map((f) => (
                       <li key={f} className="flex items-center gap-2 text-sm">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                         {f}
@@ -67,7 +78,7 @@ export default function Services() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center text-white">
           <h2 className="text-2xl sm:text-3xl font-bold">Not Sure Which Service You Need?</h2>
           <p className="mt-3 text-white/80 max-w-xl mx-auto">
-            Contact us for a free consultation. We'll assess your property and recommend the best approach.
+            Contact us for a free consultation. We serve Charlotte, Huntersville, Matthews, Mint Hill, Concord, Fort Mill, Belmont, Lake Norman, and surrounding areas within about an hour.
           </p>
           <Link href="/quote">
             <Button size="lg" variant="secondary" className="mt-6 gap-2" data-testid="services-cta-quote">
