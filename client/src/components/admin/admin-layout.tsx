@@ -3,21 +3,36 @@ import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
   TreePine, LayoutDashboard, Users, FileText, Palette, BookOpen,
-  LogOut, Loader2, ExternalLink, Menu, X
+  LogOut, Loader2, ExternalLink, Menu, X, Shield, ShieldAlert
 } from "lucide-react";
 import { useState } from "react";
 import AdminLogin from "@/pages/admin/login";
+import type { AdminRole } from "@shared/schema";
 
-const navItems = [
-  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { title: "Leads", href: "/admin/leads", icon: Users },
-  { title: "CMS", href: "/admin/cms", icon: FileText },
-  { title: "Branding", href: "/admin/branding", icon: Palette },
-  { title: "Docs", href: "/admin/docs", icon: BookOpen },
+interface NavItem {
+  title: string;
+  href: string;
+  icon: any;
+  allowedRoles: AdminRole[];
+}
+
+const navItems: NavItem[] = [
+  { title: "Dashboard", href: "/admin", icon: LayoutDashboard, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
+  { title: "Leads", href: "/admin/leads", icon: Users, allowedRoles: ["super_admin", "admin", "sales"] },
+  { title: "CMS", href: "/admin/cms", icon: FileText, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Branding", href: "/admin/branding", icon: Palette, allowedRoles: ["super_admin", "admin"] },
+  { title: "Docs", href: "/admin/docs", icon: BookOpen, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
 ];
 
+const ROLE_LABELS: Record<AdminRole, string> = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  editor: "Editor",
+  sales: "Sales",
+};
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, isAuthenticated, logout, isLoggingOut } = useAdminAuth();
+  const { user, isLoading, isAuthenticated, logout, isLoggingOut, hasRole } = useAdminAuth();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -32,6 +47,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isAuthenticated) {
     return <AdminLogin />;
   }
+
+  const visibleItems = navItems.filter((item) => hasRole(item.allowedRoles));
+
+  const isBlockedRoute = !visibleItems.some(
+    (item) => location === item.href || (item.href !== "/admin" && location.startsWith(item.href))
+  ) && location !== "/admin";
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -56,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/admin" && location.startsWith(item.href));
             return (
               <Link key={item.href} href={item.href}>
@@ -80,6 +101,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="border-t p-3 space-y-2">
+          <div className="px-3 py-1 text-xs text-muted-foreground flex items-center gap-1.5" data-testid="text-admin-role">
+            <Shield className="h-3 w-3 shrink-0" />
+            {user?.role ? ROLE_LABELS[user.role] : "Unknown"}
+          </div>
           <Link href="/">
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
@@ -128,7 +153,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         <main className="flex-1 overflow-y-auto">
-          {children}
+          {isBlockedRoute ? (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center" data-testid="access-denied">
+              <ShieldAlert className="h-12 w-12 text-muted-foreground mb-4" />
+              <h2 className="text-lg font-semibold mb-2">Insufficient Permissions</h2>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Your current role ({user?.role ? ROLE_LABELS[user.role] : "unknown"}) does not have access to this section. Contact a Super Admin if you need elevated permissions.
+              </p>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

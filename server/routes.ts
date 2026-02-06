@@ -1,10 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES } from "@shared/schema";
+import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES, ADMIN_ROLES } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcrypt";
 import passport from "passport";
-import { requireAdmin } from "./auth";
+import { requireAdmin, requireRole } from "./auth";
 import { registerCmsRoutes } from "./cms-routes";
 import { getDocsEntries } from "./docs-data";
 
@@ -23,6 +24,42 @@ function rateLimit(ip: string): boolean {
   return entry.count > RATE_LIMIT_MAX;
 }
 
+import crypto from "crypto";
+
+interface CacheEntry {
+  data: any;
+  etag: string;
+  expiresAt: number;
+}
+
+const responseCache = new Map<string, CacheEntry>();
+const CACHE_TTL = 60 * 1000;
+
+function getCached(key: string): CacheEntry | null {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    responseCache.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function setCache(key: string, data: any, ttl: number = CACHE_TTL): string {
+  const json = JSON.stringify(data);
+  const etag = `"${crypto.createHash("md5").update(json).digest("hex")}"`;
+  responseCache.set(key, { data, etag, expiresAt: Date.now() + ttl });
+  return etag;
+}
+
+function invalidateCache(prefix: string) {
+  for (const key of responseCache.keys()) {
+    if (key.startsWith(prefix)) {
+      responseCache.delete(key);
+    }
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -39,7 +76,7 @@ export async function registerRoutes(
       }
       req.logIn(user, (loginErr) => {
         if (loginErr) return next(loginErr);
-        return res.json({ user: { id: user.id, username: user.username } });
+        return res.json({ user: { id: user.id, username: user.username, role: user.role } });
       });
     })(req, res, next);
   });
@@ -52,7 +89,7 @@ export async function registerRoutes(
 
   app.get("/api/admin/me", (req, res) => {
     if (req.isAuthenticated()) {
-      return res.json({ user: { id: req.user!.id, username: req.user!.username } });
+      return res.json({ user: { id: req.user!.id, username: req.user!.username, role: req.user!.role } });
     }
     return res.status(401).json({ error: "Not authenticated" });
   });
@@ -86,7 +123,12 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads", requireAdmin, async (req, res) => {
+  const crmAccess = requireRole(["super_admin", "admin", "sales"]);
+  const cmsAccess = requireRole(["super_admin", "admin", "editor"]);
+  const brandingAccess = requireRole(["super_admin", "admin"]);
+  const superOnly = requireRole(["super_admin"]);
+
+  app.get("/api/admin/leads", crmAccess, async (req, res) => {
     try {
       const filters = {
         status: req.query.status as string | undefined,
@@ -106,7 +148,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads/export.csv", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/leads/export.csv", crmAccess, async (_req, res) => {
     try {
       const allLeads = await storage.getAllLeads();
 
@@ -152,7 +194,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads/stats", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/leads/stats", crmAccess, async (_req, res) => {
     try {
       const stats = await storage.getLeadStats();
       return res.json(stats);
@@ -162,7 +204,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads/:id", requireAdmin, async (req, res) => {
+  app.get("/api/admin/leads/:id", crmAccess, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ error: "Invalid lead ID" });
@@ -177,7 +219,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/leads/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/leads/:id", crmAccess, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ error: "Invalid lead ID" });
@@ -223,7 +265,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/leads/:id/notes", requireAdmin, async (req, res) => {
+  app.post("/api/admin/leads/:id/notes", crmAccess, async (req, res) => {
     try {
       const leadId = parseInt(req.params.id);
       if (isNaN(leadId)) return res.status(400).json({ error: "Invalid lead ID" });
@@ -258,7 +300,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads/:id/notes", requireAdmin, async (req, res) => {
+  app.get("/api/admin/leads/:id/notes", crmAccess, async (req, res) => {
     try {
       const leadId = parseInt(req.params.id);
       if (isNaN(leadId)) return res.status(400).json({ error: "Invalid lead ID" });
@@ -270,7 +312,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/leads/:id/activity", requireAdmin, async (req, res) => {
+  app.get("/api/admin/leads/:id/activity", crmAccess, async (req, res) => {
     try {
       const leadId = parseInt(req.params.id);
       if (isNaN(leadId)) return res.status(400).json({ error: "Invalid lead ID" });
@@ -283,9 +325,22 @@ export async function registerRoutes(
   });
 
   // ---- Public Settings Route ----
-  app.get("/api/public/settings", async (_req, res) => {
+  app.get("/api/public/settings", async (req, res) => {
     try {
+      const cacheKey = "public:settings";
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) {
+          return res.status(304).end();
+        }
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=60");
+        return res.json(cached.data);
+      }
       const settings = await storage.getSiteSettings();
+      const etag = setCache(cacheKey, settings, 2 * 60 * 1000);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=60");
       return res.json(settings);
     } catch (err) {
       console.error("Failed to fetch settings:", err);
@@ -300,7 +355,20 @@ export async function registerRoutes(
         category: req.query.category as string | undefined,
         search: req.query.search as string | undefined,
       };
+      const cacheKey = `public:blog:${filters.category || ""}:${filters.search || ""}`;
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) {
+          return res.status(304).end();
+        }
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=30");
+        return res.json(cached.data);
+      }
       const posts = await storage.getPublishedBlogPosts(filters);
+      const etag = setCache(cacheKey, posts);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=30");
       return res.json(posts);
     } catch (err) {
       console.error("Failed to fetch blog posts:", err);
@@ -310,10 +378,23 @@ export async function registerRoutes(
 
   app.get("/api/public/blog/:slug", async (req, res) => {
     try {
+      const cacheKey = `public:blogpost:${req.params.slug}`;
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) {
+          return res.status(304).end();
+        }
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=30");
+        return res.json(cached.data);
+      }
       const post = await storage.getBlogPostBySlug(req.params.slug);
       if (!post || post.status !== "published") {
         return res.status(404).json({ error: "Post not found" });
       }
+      const etag = setCache(cacheKey, post);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=30");
       return res.json(post);
     } catch (err) {
       console.error("Failed to fetch blog post:", err);
@@ -323,11 +404,24 @@ export async function registerRoutes(
 
   app.get("/api/public/blog/:slug/related", async (req, res) => {
     try {
+      const cacheKey = `public:related:${req.params.slug}`;
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) {
+          return res.status(304).end();
+        }
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=60");
+        return res.json(cached.data);
+      }
       const post = await storage.getBlogPostBySlug(req.params.slug);
       if (!post || post.status !== "published") {
         return res.status(404).json({ error: "Post not found" });
       }
       const related = await storage.getRelatedPosts(post.id, post.category);
+      const etag = setCache(cacheKey, related, 2 * 60 * 1000);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=60");
       return res.json(related);
     } catch (err) {
       console.error("Failed to fetch related posts:", err);
@@ -336,7 +430,7 @@ export async function registerRoutes(
   });
 
   // ---- Admin Blog Routes ----
-  app.get("/api/admin/blog", requireAdmin, async (req, res) => {
+  app.get("/api/admin/blog", cmsAccess, async (req, res) => {
     try {
       const filters = {
         status: req.query.status as string | undefined,
@@ -351,7 +445,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/blog", requireAdmin, async (req, res) => {
+  app.post("/api/admin/blog", cmsAccess, async (req, res) => {
     try {
       const parsed = insertBlogPostSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -362,6 +456,7 @@ export async function registerRoutes(
         return res.status(409).json({ error: "A post with this slug already exists" });
       }
       const post = await storage.createBlogPost(parsed.data);
+      invalidateCache("public:blog");
       return res.status(201).json(post);
     } catch (err) {
       console.error("Failed to create blog post:", err);
@@ -369,7 +464,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/blog/:id", requireAdmin, async (req, res) => {
+  app.get("/api/admin/blog/:id", cmsAccess, async (req, res) => {
     try {
       const post = await storage.getBlogPost(req.params.id);
       if (!post) return res.status(404).json({ error: "Post not found" });
@@ -380,7 +475,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/blog/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/blog/:id", cmsAccess, async (req, res) => {
     try {
       const parsed = updateBlogPostSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -404,6 +499,8 @@ export async function registerRoutes(
       }
       const updated = await storage.updateBlogPost(req.params.id, updateData);
       if (!updated) return res.status(404).json({ error: "Post not found" });
+      invalidateCache("public:blog");
+      invalidateCache("public:related");
       return res.json(updated);
     } catch (err) {
       console.error("Failed to update blog post:", err);
@@ -411,10 +508,12 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/admin/blog/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/blog/:id", cmsAccess, async (req, res) => {
     try {
       const deleted = await storage.deleteBlogPost(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Post not found" });
+      invalidateCache("public:blog");
+      invalidateCache("public:related");
       return res.json({ ok: true });
     } catch (err) {
       console.error("Failed to delete blog post:", err);
@@ -423,7 +522,7 @@ export async function registerRoutes(
   });
 
   // ---- Admin Settings Routes ----
-  app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/settings", brandingAccess, async (_req, res) => {
     try {
       const settings = await storage.getSiteSettings();
       return res.json(settings);
@@ -433,17 +532,104 @@ export async function registerRoutes(
     }
   });
 
-  app.put("/api/admin/settings", requireAdmin, async (req, res) => {
+  app.put("/api/admin/settings", brandingAccess, async (req, res) => {
     try {
       const parsed = updateSiteSettingsSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
       }
       const updated = await storage.updateSiteSettings(parsed.data);
+      invalidateCache("public:settings");
       return res.json(updated);
     } catch (err) {
       console.error("Failed to update settings:", err);
       return res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // ---- Admin User Management Routes (SuperAdmin only) ----
+  app.get("/api/admin/users", superOnly, async (_req, res) => {
+    try {
+      const users = await storage.getAdminUsers();
+      const sanitized = users.map(({ passwordHash, ...rest }) => rest);
+      return res.json(sanitized);
+    } catch (err) {
+      console.error("Failed to fetch admin users:", err);
+      return res.status(500).json({ error: "Failed to fetch admin users" });
+    }
+  });
+
+  app.post("/api/admin/users", superOnly, async (req, res) => {
+    try {
+      const schema = z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+        displayName: z.string().optional(),
+        role: z.enum(ADMIN_ROLES),
+      });
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const existing = await storage.getAdminUserByEmail(parsed.data.email);
+      if (existing) {
+        return res.status(409).json({ error: "A user with this email already exists" });
+      }
+      const hash = await bcrypt.hash(parsed.data.password, 10);
+      const user = await storage.createAdminUser({
+        email: parsed.data.email,
+        passwordHash: hash,
+        displayName: parsed.data.displayName,
+        role: parsed.data.role,
+      });
+      const { passwordHash, ...sanitized } = user;
+      return res.status(201).json(sanitized);
+    } catch (err) {
+      console.error("Failed to create admin user:", err);
+      return res.status(500).json({ error: "Failed to create admin user" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", superOnly, async (req, res) => {
+    try {
+      const schema = z.object({
+        email: z.string().email().optional(),
+        password: z.string().min(6).optional(),
+        displayName: z.string().nullable().optional(),
+        role: z.enum(ADMIN_ROLES).optional(),
+      });
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const updateData: any = {};
+      if (parsed.data.email) updateData.email = parsed.data.email;
+      if (parsed.data.displayName !== undefined) updateData.displayName = parsed.data.displayName;
+      if (parsed.data.role) updateData.role = parsed.data.role;
+      if (parsed.data.password) {
+        updateData.passwordHash = await bcrypt.hash(parsed.data.password, 10);
+      }
+      const updated = await storage.updateAdminUser(req.params.id, updateData);
+      if (!updated) return res.status(404).json({ error: "User not found" });
+      const { passwordHash, ...sanitized } = updated;
+      return res.json(sanitized);
+    } catch (err) {
+      console.error("Failed to update admin user:", err);
+      return res.status(500).json({ error: "Failed to update admin user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", superOnly, async (req, res) => {
+    try {
+      if (req.params.id === req.user?.id) {
+        return res.status(400).json({ error: "Cannot delete your own account" });
+      }
+      const deleted = await storage.deleteAdminUser(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "User not found" });
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("Failed to delete admin user:", err);
+      return res.status(500).json({ error: "Failed to delete admin user" });
     }
   });
 
@@ -565,6 +751,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/admin/docs", requireAdmin, (_req, res) => {
+    // All authenticated admins can read docs
     const entries = getDocsEntries();
     const categories = [...new Set(entries.map((e: any) => e.category))];
     res.json({ categories, entries });

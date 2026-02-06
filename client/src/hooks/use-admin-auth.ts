@@ -1,9 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { AdminRole } from "@shared/schema";
 
 interface AdminUser {
   id: string;
   username: string;
+  role: AdminRole;
 }
 
 export function useAdminAuth() {
@@ -38,14 +40,42 @@ export function useAdminAuth() {
     },
   });
 
+  const user = data?.user || null;
+
+  function hasRole(allowedRoles: AdminRole[]): boolean {
+    if (!user) return false;
+    return allowedRoles.includes(user.role);
+  }
+
+  function canAccessCms(): boolean {
+    return hasRole(["super_admin", "admin", "editor"]);
+  }
+
+  function canAccessCrm(): boolean {
+    return hasRole(["super_admin", "admin", "sales"]);
+  }
+
+  function canAccessBranding(): boolean {
+    return hasRole(["super_admin", "admin"]);
+  }
+
+  function canManageUsers(): boolean {
+    return hasRole(["super_admin"]);
+  }
+
   return {
-    user: data?.user || null,
+    user,
     isLoading,
-    isAuthenticated: !!data?.user,
+    isAuthenticated: !!user,
     login: loginMutation.mutateAsync,
     loginError: loginMutation.error,
     isLoggingIn: loginMutation.isPending,
     logout: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
+    hasRole,
+    canAccessCms,
+    canAccessCrm,
+    canAccessBranding,
+    canManageUsers,
   };
 }

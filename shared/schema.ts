@@ -371,6 +371,37 @@ export const insertCmsPageRevisionSchema = z.object({
 
 export type InsertCmsPageRevision = z.infer<typeof insertCmsPageRevisionSchema>;
 
+export const ADMIN_ROLES = ["super_admin", "admin", "editor", "sales"] as const;
+export type AdminRole = (typeof ADMIN_ROLES)[number];
+
+export const adminUsers = pgTable("admin_users", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name"),
+  role: text("role").notNull().default("editor"),
+});
+
+export const insertAdminUserSchema = z.object({
+  email: z.string().email(),
+  passwordHash: z.string().min(1),
+  displayName: z.string().optional(),
+  role: z.enum(ADMIN_ROLES),
+});
+
+export const updateAdminUserSchema = z.object({
+  email: z.string().email().optional(),
+  displayName: z.string().nullable().optional(),
+  role: z.enum(ADMIN_ROLES).optional(),
+  passwordHash: z.string().min(1).optional(),
+});
+
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type UpdateAdminUser = z.infer<typeof updateAdminUserSchema>;
+
 export interface BlockInstance {
   id: string;
   type: string;

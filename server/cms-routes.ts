@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import multer from "multer";
 import { storage } from "./storage";
-import { requireAdmin } from "./auth";
+import { requireAdmin, requireRole } from "./auth";
 import {
   insertCmsPageSchema, updateCmsPageSchema,
   insertCmsTemplateSchema, updateCmsTemplateSchema,
@@ -64,7 +64,10 @@ function cleanExpiredTokens() {
 setInterval(cleanExpiredTokens, 60_000);
 
 export function registerCmsRoutes(app: Express) {
-  app.get("/api/admin/cms/pages", requireAdmin, async (req, res) => {
+  const cmsAccess = requireRole(["super_admin", "admin", "editor"]);
+  const themeAccess = requireRole(["super_admin", "admin"]);
+
+  app.get("/api/admin/cms/pages", cmsAccess, async (req, res) => {
     try {
       const filters = {
         status: req.query.status as string | undefined,
@@ -79,7 +82,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/pages", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/pages", cmsAccess, async (req, res) => {
     try {
       const parsed = insertCmsPageSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -97,7 +100,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/pages/:id", requireAdmin, async (req, res) => {
+  app.get("/api/admin/cms/pages/:id", cmsAccess, async (req, res) => {
     try {
       const page = await storage.getCmsPage(req.params.id);
       if (!page) return res.status(404).json({ error: "Page not found" });
@@ -108,7 +111,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.patch("/api/admin/cms/pages/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/cms/pages/:id", cmsAccess, async (req, res) => {
     try {
       const parsed = updateCmsPageSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -153,7 +156,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/cms/pages/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cms/pages/:id", cmsAccess, async (req, res) => {
     try {
       const deleted = await storage.deleteCmsPage(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Page not found" });
@@ -164,7 +167,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/templates", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/cms/templates", cmsAccess, async (_req, res) => {
     try {
       const templates = await storage.getCmsTemplates();
       return res.json(templates);
@@ -174,7 +177,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/templates", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/templates", cmsAccess, async (req, res) => {
     try {
       const parsed = insertCmsTemplateSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -188,7 +191,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/templates/:id", requireAdmin, async (req, res) => {
+  app.get("/api/admin/cms/templates/:id", cmsAccess, async (req, res) => {
     try {
       const template = await storage.getCmsTemplate(req.params.id);
       if (!template) return res.status(404).json({ error: "Template not found" });
@@ -199,7 +202,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.patch("/api/admin/cms/templates/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/cms/templates/:id", cmsAccess, async (req, res) => {
     try {
       const parsed = updateCmsTemplateSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -214,7 +217,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/cms/templates/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cms/templates/:id", cmsAccess, async (req, res) => {
     try {
       const deleted = await storage.deleteCmsTemplate(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Template not found" });
@@ -225,7 +228,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/blocks", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/cms/blocks", cmsAccess, async (_req, res) => {
     try {
       const blocks = await storage.getCmsBlocks();
       return res.json(blocks);
@@ -235,7 +238,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/blocks", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/blocks", cmsAccess, async (req, res) => {
     try {
       const parsed = insertCmsBlockSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -254,7 +257,7 @@ export function registerCmsRoutes(app: Express) {
     next();
   }, express.static(UPLOADS_DIR, { maxAge: "7d" }));
 
-  app.get("/api/admin/cms/media", requireAdmin, async (req, res) => {
+  app.get("/api/admin/cms/media", cmsAccess, async (req, res) => {
     try {
       const filters = {
         search: req.query.search as string | undefined,
@@ -269,7 +272,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/media/upload", requireAdmin, (req, res, next) => {
+  app.post("/api/admin/cms/media/upload", cmsAccess, (req, res, next) => {
     const ip = req.ip || req.socket.remoteAddress || "unknown";
     if (!checkUploadRateLimit(ip)) {
       return res.status(429).json({ error: "Too many uploads. Try again in a minute." });
@@ -308,7 +311,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/media", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/media", cmsAccess, async (req, res) => {
     try {
       const parsed = insertCmsMediaSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -322,7 +325,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.patch("/api/admin/cms/media/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/admin/cms/media/:id", cmsAccess, async (req, res) => {
     try {
       const { alt, title, tags } = req.body;
       const updated = await storage.updateCmsMedia(req.params.id, { alt, title, tags });
@@ -334,7 +337,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/cms/media/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cms/media/:id", cmsAccess, async (req, res) => {
     try {
       const item = await storage.getCmsMediaById(req.params.id);
       const deleted = await storage.deleteCmsMedia(req.params.id);
@@ -350,7 +353,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/themes", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/cms/themes", themeAccess, async (_req, res) => {
     try {
       const presets = await storage.getThemePresets();
       return res.json(presets);
@@ -360,7 +363,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/themes/:id/activate", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/themes/:id/activate", themeAccess, async (req, res) => {
     try {
       const preset = await storage.activateThemePreset(req.params.id);
       return res.json(preset);
@@ -370,7 +373,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/redirects", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/cms/redirects", cmsAccess, async (_req, res) => {
     try {
       const redirects = await storage.getCmsRedirects();
       return res.json(redirects);
@@ -380,7 +383,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/redirects", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/redirects", cmsAccess, async (req, res) => {
     try {
       const parsed = insertCmsRedirectSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -394,7 +397,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/admin/cms/redirects/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/admin/cms/redirects/:id", cmsAccess, async (req, res) => {
     try {
       const deleted = await storage.deleteCmsRedirect(req.params.id);
       if (!deleted) return res.status(404).json({ error: "Redirect not found" });
@@ -405,7 +408,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.get("/api/admin/cms/pages/:id/revisions", requireAdmin, async (req, res) => {
+  app.get("/api/admin/cms/pages/:id/revisions", cmsAccess, async (req, res) => {
     try {
       const page = await storage.getCmsPage(req.params.id);
       if (!page) return res.status(404).json({ error: "Page not found" });
@@ -417,7 +420,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/pages/:id/revisions", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/pages/:id/revisions", cmsAccess, async (req, res) => {
     try {
       const page = await storage.getCmsPage(req.params.id);
       if (!page) return res.status(404).json({ error: "Page not found" });
@@ -449,7 +452,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/pages/:id/revisions/:revId/restore", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/pages/:id/revisions/:revId/restore", cmsAccess, async (req, res) => {
     try {
       const page = await storage.getCmsPage(req.params.id);
       if (!page) return res.status(404).json({ error: "Page not found" });
@@ -478,7 +481,7 @@ export function registerCmsRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/cms/pages/:id/preview-token", requireAdmin, async (req, res) => {
+  app.post("/api/admin/cms/pages/:id/preview-token", cmsAccess, async (req, res) => {
     try {
       const page = await storage.getCmsPage(req.params.id);
       if (!page) return res.status(404).json({ error: "Page not found" });

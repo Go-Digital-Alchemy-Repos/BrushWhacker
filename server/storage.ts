@@ -12,9 +12,10 @@ import {
   type ThemePreset, type InsertThemePreset,
   type CmsRedirect, type InsertCmsRedirect,
   type CmsPageRevision,
+  type AdminUser, type InsertAdminUser, type UpdateAdminUser,
   leads, leadNotes, leadActivity, blogPosts, siteSettings,
   cmsPages, cmsTemplates, cmsBlockLibrary, cmsMedia, themePresets, cmsRedirects,
-  cmsPageRevisions,
+  cmsPageRevisions, adminUsers,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -91,6 +92,12 @@ export interface IStorage {
   getPageRevision(id: string): Promise<CmsPageRevision | undefined>;
   createPageRevision(data: { pageId: string; createdBy?: string; message?: string; snapshot: Record<string, any> }): Promise<CmsPageRevision>;
   prunePageRevisions(pageId: string, keep: number): Promise<number>;
+  getAdminUsers(): Promise<AdminUser[]>;
+  getAdminUser(id: string): Promise<AdminUser | undefined>;
+  getAdminUserByEmail(email: string): Promise<AdminUser | undefined>;
+  createAdminUser(data: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUser(id: string, data: Partial<UpdateAdminUser>): Promise<AdminUser | undefined>;
+  deleteAdminUser(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -546,6 +553,42 @@ export class DatabaseStorage implements IStorage {
       .where(inArray(cmsPageRevisions.id, toDelete))
       .returning();
     return result.length;
+  }
+
+  async getAdminUsers(): Promise<AdminUser[]> {
+    return db.select().from(adminUsers).orderBy(asc(adminUsers.email));
+  }
+
+  async getAdminUser(id: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return user;
+  }
+
+  async getAdminUserByEmail(email: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email.toLowerCase()));
+    return user;
+  }
+
+  async createAdminUser(data: InsertAdminUser): Promise<AdminUser> {
+    const [created] = await db.insert(adminUsers).values({
+      email: data.email.toLowerCase(),
+      passwordHash: data.passwordHash,
+      displayName: data.displayName || null,
+      role: data.role,
+    }).returning();
+    return created;
+  }
+
+  async updateAdminUser(id: string, data: Partial<UpdateAdminUser>): Promise<AdminUser | undefined> {
+    const updateData: any = { ...data, updatedAt: new Date() };
+    if (data.email) updateData.email = data.email.toLowerCase();
+    const [updated] = await db.update(adminUsers).set(updateData).where(eq(adminUsers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    const result = await db.delete(adminUsers).where(eq(adminUsers.id, id)).returning();
+    return result.length > 0;
   }
 }
 

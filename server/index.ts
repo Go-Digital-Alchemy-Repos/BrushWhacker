@@ -2,7 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { setupAuth } from "./auth";
+import { setupAuth, seedDefaultAdmin } from "./auth";
 import { seedBlogPosts } from "./seed-blog";
 import { seedCmsData } from "./seed-cms";
 
@@ -69,6 +69,7 @@ app.use((req, res, next) => {
 
   seedBlogPosts().catch((err) => console.error("Blog seed error:", err));
   seedCmsData().catch((err) => console.error("CMS seed error:", err));
+  seedDefaultAdmin().catch((err) => console.error("Admin seed error:", err));
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
