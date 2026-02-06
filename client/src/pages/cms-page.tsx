@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { Loader2, Eye, Star, MapPin } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Loader2, Eye, Star, MapPin, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { getServiceIcon, ICON_SIZES } from "@/lib/service-icons";
 import type { BlockInstance, CrmProject, CmsTestimonial } from "@shared/schema";
 
 interface CmsPageData {
