@@ -136,3 +136,40 @@ export const updateBlogPostSchema = z.object({
 
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull().default("BrushWhackers"),
+  phone: text("phone").notNull().default("(704) 555-0123"),
+  email: text("email").notNull().default("info@brushwhackers.com"),
+  serviceArea: text("service_area").notNull().default("Charlotte, NC & Surrounding Areas"),
+  logoUrl: text("logo_url"),
+  primaryColor: text("primary_color").notNull().default("217 91% 60%"),
+  secondaryColor: text("secondary_color").notNull().default("142 76% 36%"),
+  fontFamily: text("font_family").notNull().default("Inter"),
+  ctaText: text("cta_text").notNull().default("Get a Fast Quote"),
+  socialFacebook: text("social_facebook"),
+  socialInstagram: text("social_instagram"),
+  socialYoutube: text("social_youtube"),
+  socialGoogle: text("social_google"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const updateSiteSettingsSchema = z.object({
+  companyName: z.string().min(1).optional(),
+  phone: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  serviceArea: z.string().min(1).optional(),
+  logoUrl: z.string().nullable().optional(),
+  primaryColor: z.string().min(1).optional(),
+  secondaryColor: z.string().min(1).optional(),
+  fontFamily: z.string().min(1).optional(),
+  ctaText: z.string().min(1).optional(),
+  socialFacebook: z.string().nullable().optional(),
+  socialInstagram: z.string().nullable().optional(),
+  socialYoutube: z.string().nullable().optional(),
+  socialGoogle: z.string().nullable().optional(),
+});
+
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type UpdateSiteSettings = z.infer<typeof updateSiteSettingsSchema>;
