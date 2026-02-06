@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, TreePine } from "lucide-react";
+import { Menu, X, ChevronDown, TreePine, Phone } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const services = [
@@ -96,6 +96,11 @@ export function TopNav() {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
+            <a href="tel:+17046085783" data-testid="link-call-now">
+              <Button variant="outline" className="gap-2">
+                <Phone className="h-4 w-4" /> Call Now (704) 608-5783
+              </Button>
+            </a>
             <Link href="/quote">
               <Button data-testid="link-get-quote">{settings.ctaText}</Button>
             </Link>
@@ -143,7 +148,12 @@ export function TopNav() {
                 )}
               </div>
             ))}
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <a href="tel:+17046085783" className="block" data-testid="mobile-link-call-now">
+                <Button variant="outline" className="w-full gap-2">
+                  <Phone className="h-4 w-4" /> Call Now (704) 608-5783
+                </Button>
+              </a>
               <Link href="/quote" onClick={() => setMobileOpen(false)}>
                 <Button className="w-full" data-testid="mobile-link-get-quote">{settings.ctaText}</Button>
               </Link>
