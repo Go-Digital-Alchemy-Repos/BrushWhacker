@@ -327,8 +327,8 @@ const THEME_PRESETS = [
     isActive: true,
     tokens: {
       colors: { 
-        primary: "14 90% 50%", 
-        secondary: "155 45% 25%", 
+        primary: "24 97% 46%", 
+        secondary: "137 38% 21%", 
         accent: "215 25% 40%", 
         bg: "210 20% 98%", 
         surface: "0 0% 100%", 
