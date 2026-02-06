@@ -1,8 +1,8 @@
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { Section, SectionHeaderPro } from "@/components/premium";
 import { getServiceBySlug, SERVICES } from "@/lib/services-data";
 import { ArrowRight, CheckCircle2, ArrowLeft, Target, Wrench, MapPin, DollarSign, HelpCircle, Phone } from "lucide-react";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -78,13 +78,13 @@ export default function ServiceDetail() {
             {service.h1}
           </h1>
           <p className="mt-4 text-gray-200 max-w-2xl text-lg sm:text-xl">{service.intro}</p>
-          <div className="flex flex-wrap items-center gap-3 mt-8">
+          <div className="flex flex-wrap items-center gap-3 mt-8" data-testid="service-hero-ctas">
             <Link href="/quote">
               <Button size="lg" className="gap-2 text-base" data-testid="service-hero-cta-quote">
                 Get a Free Quote <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href="tel:+17046085783">
+            <a href="tel:+17046085783" data-testid="link-service-phone">
               <Button size="lg" variant="outline" className="gap-2 bg-white/10 backdrop-blur-sm text-white border-white/25">
                 <Phone className="h-4 w-4" />
                 (704) 608-5783
@@ -95,19 +95,22 @@ export default function ServiceDetail() {
         <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
-      <section className="py-12 sm:py-16">
+      <Section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Badge variant="secondary" className="mb-4 no-default-active-elevate">Overview</Badge>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4" data-testid="text-service-overview-heading">
-            Service Overview
-          </h2>
-          <div className="space-y-4 text-muted-foreground leading-relaxed text-base sm:text-lg" data-testid="text-service-overview">
+          <SectionHeaderPro
+            eyebrow="Overview"
+            title="Service Overview"
+            align="left"
+            className="mb-6"
+            data-testid="text-service-overview-heading"
+          />
+          <div className="space-y-4 text-muted-foreground leading-relaxed text-base sm:text-lg prose-premium" data-testid="text-service-overview">
             {service.overview.split("\n\n").map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
       <section className="pb-12 sm:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -172,7 +175,7 @@ export default function ServiceDetail() {
         </div>
       </section>
 
-      <section className="pb-16 sm:pb-20">
+      <Section variant="tinted" className="pb-16 sm:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-10">
@@ -228,7 +231,7 @@ export default function ServiceDetail() {
                   <Card className="hover-elevate cursor-pointer" data-testid={`card-related-${s.slug}`}>
                     <CardContent className="p-4 flex items-center gap-3">
                       <div className="h-12 w-12 rounded-md overflow-hidden shrink-0">
-                        <img src={s.image} alt={s.title} className="w-full h-full object-cover" />
+                        <img src={s.image} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-medium text-sm truncate">{s.title}</h4>
@@ -239,8 +242,8 @@ export default function ServiceDetail() {
                 </Link>
               ))}
 
-              <Card className="mt-6 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "16px 16px" }} />
+              <Card className="mt-6 relative">
+                <div className="absolute inset-0 bg-dot-pattern-light rounded-md" />
                 <CardContent className="p-5 text-center space-y-3 relative">
                   <h3 className="font-semibold">Need This Service?</h3>
                   <p className="text-sm text-muted-foreground">Get a fast, no-obligation quote for your property in the Charlotte area.</p>
@@ -254,7 +257,7 @@ export default function ServiceDetail() {
             </div>
           </div>
         </div>
-      </section>
+      </Section>
     </SiteLayout>
   );
 }

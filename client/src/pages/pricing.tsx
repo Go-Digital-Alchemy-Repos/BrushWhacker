@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { Section, SectionHeaderPro } from "@/components/premium";
 import { STOCK_IMAGES } from "@/lib/stock-images";
 import { CheckCircle2, ArrowRight, HelpCircle, Clock, Zap, Star, Layers, Phone } from "lucide-react";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -127,7 +128,9 @@ export default function Pricing() {
         />
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
-          <Badge variant="secondary" className="mb-4 no-default-active-elevate bg-white/10 text-white border-white/20">Transparent Rates</Badge>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider text-white/90 bg-white/10 backdrop-blur-sm mb-4">
+            Transparent Rates
+          </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-pricing-title">
             Simple, Straightforward
             <br />
@@ -140,15 +143,12 @@ export default function Pricing() {
         <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
-      <section className="py-16 sm:py-20">
+      <Section data-testid="pricing-tiers-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Pricing Tiers</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              Choose the option that best fits your project size and needs.
-            </p>
-          </div>
-
+          <SectionHeaderPro
+            title="Our Pricing Tiers"
+            subtitle="Choose the option that best fits your project size and needs."
+          />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {tiers.map((tier) => (
               <Card
@@ -197,18 +197,15 @@ export default function Pricing() {
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Price Factors</Badge>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">What Affects Price</h2>
-            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Every property is different. Here are the main factors that influence your final quote.
-            </p>
-          </div>
+      <Section variant="pattern" className="spotlight-glow" data-testid="pricing-factors-section">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+          <SectionHeaderPro
+            eyebrow="Price Factors"
+            title="What Affects Price"
+            subtitle="Every property is different. Here are the main factors that influence your final quote."
+          />
           <div className="grid sm:grid-cols-2 gap-4">
             {affectsPrice.map((item) => (
               <Card key={item.text} className="hover-elevate">
@@ -230,17 +227,14 @@ export default function Pricing() {
             </Link>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20 section-divider pt-20">
+      <Section data-testid="pricing-faq-section">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">FAQ</Badge>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
-              <HelpCircle className="h-6 w-6 text-primary" />
-              Common Questions
-            </h2>
-          </div>
+          <SectionHeaderPro
+            eyebrow="FAQ"
+            title="Common Questions"
+          />
           <div className="space-y-4">
             {faqs.map((faq, i) => (
               <Card key={i} className="hover-elevate" data-testid={`card-faq-${i}`}>
@@ -252,7 +246,7 @@ export default function Pricing() {
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
       <section className="relative overflow-hidden">
         <div
@@ -271,7 +265,7 @@ export default function Pricing() {
                 Get a Fast Quote <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href="tel:+17046085783">
+            <a href="tel:+17046085783" data-testid="link-pricing-phone">
               <Button size="lg" variant="outline" className="gap-2 text-base bg-white/10 backdrop-blur-sm text-white border-white/25">
                 <Phone className="h-4 w-4" />
                 (704) 608-5783

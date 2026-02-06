@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { Section, SectionHeaderPro } from "@/components/premium";
 import { SERVICES } from "@/lib/services-data";
 import { ArrowRight, CheckCircle2, Phone } from "lucide-react";
 import { STOCK_IMAGES } from "@/lib/stock-images";
@@ -39,7 +40,9 @@ export default function Services() {
         />
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 100%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 text-center">
-          <Badge variant="secondary" className="mb-4 no-default-active-elevate bg-white/10 text-white border-white/20">6 Core Services</Badge>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider text-white/90 bg-white/10 backdrop-blur-sm mb-4">
+            6 Core Services
+          </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" data-testid="text-services-title">
             Land Clearing Services
             <br />
@@ -57,7 +60,7 @@ export default function Services() {
         <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
-      <section className="py-16 sm:py-20">
+      <Section data-testid="services-list-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           {SERVICES.map((service, i) => (
             <Card key={service.slug} className="overflow-hidden" data-testid={`card-service-${service.slug}`}>
@@ -67,6 +70,7 @@ export default function Services() {
                     src={service.image}
                     alt={service.title}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.1) 0%, transparent 50%)" }} />
                 </div>
@@ -94,7 +98,7 @@ export default function Services() {
             </Card>
           ))}
         </div>
-      </section>
+      </Section>
 
       <section className="relative overflow-hidden">
         <div
@@ -113,7 +117,7 @@ export default function Services() {
                 Get a Free Quote <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href="tel:+17046085783">
+            <a href="tel:+17046085783" data-testid="link-services-phone">
               <Button size="lg" variant="outline" className="gap-2 text-base bg-white/10 backdrop-blur-sm text-white border-white/25">
                 <Phone className="h-4 w-4" />
                 (704) 608-5783

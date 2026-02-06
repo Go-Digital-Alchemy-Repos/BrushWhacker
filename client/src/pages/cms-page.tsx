@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Loader2, Eye, Star, MapPin } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import type { BlockInstance, CrmProject, CmsTestimonial } from "@shared/schema";
@@ -36,7 +37,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
               className="absolute inset-0 w-full h-full object-cover"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.3) 100%)" }} />
           <div className="relative z-10 text-center px-6 py-16 max-w-3xl mx-auto">
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{block.props.headline}</h1>
             {block.props.subheadline && (
@@ -46,18 +47,20 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
               <a
                 href={block.props.primaryCtaHref || "/quote"}
                 className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover-elevate"
+                data-testid={`link-hero-cta-${block.id}`}
               >
                 {block.props.primaryCtaText}
               </a>
             )}
           </div>
+          <div className="absolute bottom-0 left-0 right-0 h-16" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
         </section>
       );
 
     case "rich_text":
       return (
-        <section className="py-12 px-6 max-w-4xl mx-auto" data-testid={`block-rich-text-${block.id}`}>
-          <div className="prose prose-lg dark:prose-invert max-w-none whitespace-pre-wrap">
+        <section className="py-16 sm:py-20 px-6 max-w-4xl mx-auto" data-testid={`block-rich-text-${block.id}`}>
+          <div className="prose prose-lg dark:prose-invert max-w-none whitespace-pre-wrap prose-premium">
             {block.props.content}
           </div>
         </section>
@@ -74,7 +77,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
           />
           {block.props.overlayText && (
             <>
-              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 100%)" }} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-2xl md:text-3xl font-bold text-white text-center px-6">{block.props.overlayText}</p>
               </div>
@@ -86,16 +89,18 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "feature_grid":
       return (
-        <section className="py-16 px-6 bg-muted/30" data-testid={`block-feature-grid-${block.id}`}>
+        <section className="py-16 sm:py-20 px-6 bg-gradient-section" data-testid={`block-feature-grid-${block.id}`}>
           <div className="max-w-5xl mx-auto">
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
             {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
             <div className="grid md:grid-cols-3 gap-6">
               {(block.props.features || []).map((f: any, i: number) => (
-                <div key={i} className="bg-card rounded-md p-6 border">
-                  <h3 className="font-semibold mb-2">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground">{f.description}</p>
-                </div>
+                <Card key={i} className="hover-elevate">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-2">{f.title}</h3>
+                    <p className="text-sm text-muted-foreground">{f.description}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -104,14 +109,18 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "service_cards":
       return (
-        <section className="py-16 px-6" data-testid={`block-service-cards-${block.id}`}>
+        <section className="py-16 sm:py-20 px-6" data-testid={`block-service-cards-${block.id}`}>
           <div className="max-w-5xl mx-auto">
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">{block.props.heading}</h2>}
             <div className="grid md:grid-cols-3 gap-6">
               {(block.props.services || []).map((s: any, i: number) => (
-                <a key={i} href={s.slug} className="bg-card rounded-md p-6 border hover-elevate block">
-                  <h3 className="font-semibold mb-2">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground">{s.description}</p>
+                <a key={i} href={s.slug}>
+                  <Card className="hover-elevate cursor-pointer h-full">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold mb-2">{s.title}</h3>
+                      <p className="text-sm text-muted-foreground">{s.description}</p>
+                    </CardContent>
+                  </Card>
                 </a>
               ))}
             </div>
@@ -121,16 +130,19 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "testimonial_row":
       return (
-        <section className="py-16 px-6 bg-muted/30" data-testid={`block-testimonials-${block.id}`}>
+        <section className="py-16 sm:py-20 px-6 bg-gradient-section" data-testid={`block-testimonials-${block.id}`}>
           <div className="max-w-5xl mx-auto">
-            {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">{block.props.heading}</h2>}
+            {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
+            {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
             <div className="grid md:grid-cols-3 gap-6">
               {(block.props.testimonials || []).map((t: any, i: number) => (
-                <div key={i} className="bg-card rounded-md p-6 border">
-                  <p className="text-sm text-muted-foreground italic mb-4">"{t.text}"</p>
-                  <p className="text-sm font-medium">{t.name}</p>
-                  {t.location && <p className="text-xs text-muted-foreground">{t.location}</p>}
-                </div>
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <p className="text-sm text-muted-foreground italic mb-4">"{t.text}"</p>
+                    <p className="text-sm font-medium">{t.name}</p>
+                    {t.location && <p className="text-xs text-muted-foreground">{t.location}</p>}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -144,7 +156,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
         dark: "bg-foreground text-background",
       };
       return (
-        <section className={`py-16 px-6 ${variants[block.props.variant] || variants.primary}`} data-testid={`block-cta-band-${block.id}`}>
+        <section className={`py-16 sm:py-20 px-6 ${variants[block.props.variant] || variants.primary}`} data-testid={`block-cta-band-${block.id}`}>
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">{block.props.heading}</h2>
             {block.props.description && <p className="opacity-90 mb-6">{block.props.description}</p>}
@@ -152,6 +164,7 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
               <a
                 href={block.props.buttonHref || "/quote"}
                 className="inline-block px-6 py-3 bg-background text-foreground rounded-md font-medium hover-elevate"
+                data-testid={`link-cta-band-${block.id}`}
               >
                 {block.props.buttonText}
               </a>
@@ -163,17 +176,23 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "faq":
       return (
-        <section className="py-16 px-6" data-testid={`block-faq-${block.id}`}>
+        <section className="py-16 sm:py-20 px-6" data-testid={`block-faq-${block.id}`}>
           <div className="max-w-3xl mx-auto">
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">{block.props.heading}</h2>}
             <div className="space-y-4">
               {(block.props.faqs || []).map((faq: any, i: number) => (
-                <details key={i} className="bg-card rounded-md border p-4 group">
-                  <summary className="font-medium cursor-pointer list-none flex items-center justify-between gap-2">
-                    {faq.question}
-                    <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">&#9660;</span>
-                  </summary>
-                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{faq.answer}</p>
+                <details key={i} className="group">
+                  <Card>
+                    <CardContent className="p-0">
+                      <summary className="font-medium cursor-pointer list-none flex items-center justify-between gap-2 p-4">
+                        {faq.question}
+                        <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">&#9660;</span>
+                      </summary>
+                      <div className="px-4 pb-4">
+                        <p className="text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </details>
               ))}
             </div>
@@ -183,26 +202,28 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "pricing_table":
       return (
-        <section className="py-16 px-6" data-testid={`block-pricing-${block.id}`}>
+        <section className="py-16 sm:py-20 px-6" data-testid={`block-pricing-${block.id}`}>
           <div className="max-w-5xl mx-auto">
             {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">{block.props.heading}</h2>}
             <div className="grid md:grid-cols-3 gap-6">
               {(block.props.tiers || []).map((tier: any, i: number) => (
-                <div key={i} className={`bg-card rounded-md p-6 border ${tier.highlighted ? "ring-2 ring-primary border-primary" : ""}`}>
-                  <h3 className="font-bold text-lg mb-1">{tier.name}</h3>
-                  <p className="text-xl font-semibold text-primary mb-3">{tier.price}</p>
-                  <p className="text-sm text-muted-foreground mb-4">{tier.description}</p>
-                  {Array.isArray(tier.features) && (
-                    <ul className="space-y-2">
-                      {tier.features.map((f: string, j: number) => (
-                        <li key={j} className="text-sm flex items-start gap-2">
-                          <span className="text-primary mt-0.5">&#10003;</span>
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <Card key={i} className={tier.highlighted ? "ring-2 ring-primary border-primary" : ""}>
+                  <CardContent className="p-6">
+                    <h3 className="font-bold text-lg mb-1">{tier.name}</h3>
+                    <p className="text-xl font-semibold text-primary mb-3">{tier.price}</p>
+                    <p className="text-sm text-muted-foreground mb-4">{tier.description}</p>
+                    {Array.isArray(tier.features) && (
+                      <ul className="space-y-2">
+                        {tier.features.map((f: string, j: number) => (
+                          <li key={j} className="text-sm flex items-start gap-2">
+                            <span className="text-primary mt-0.5">&#10003;</span>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -211,22 +232,23 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
 
     case "contact_cta":
       return (
-        <section className="py-16 px-6 bg-muted/30" data-testid={`block-contact-cta-${block.id}`}>
-          <div className="max-w-2xl mx-auto text-center">
+        <section className="py-16 sm:py-20 px-6 bg-gradient-section spotlight-glow" data-testid={`block-contact-cta-${block.id}`}>
+          <div className="max-w-2xl mx-auto text-center relative z-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">{block.props.heading}</h2>
             {block.props.description && <p className="text-muted-foreground mb-6">{block.props.description}</p>}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 mb-6">
               {block.props.phone && (
-                <a href={`tel:${block.props.phone}`} className="text-primary font-medium hover:underline">{block.props.phone}</a>
+                <a href={`tel:${block.props.phone}`} className="text-primary font-medium hover:underline" data-testid={`link-contact-phone-${block.id}`}>{block.props.phone}</a>
               )}
               {block.props.email && (
-                <a href={`mailto:${block.props.email}`} className="text-primary font-medium hover:underline">{block.props.email}</a>
+                <a href={`mailto:${block.props.email}`} className="text-primary font-medium hover:underline" data-testid={`link-contact-email-${block.id}`}>{block.props.email}</a>
               )}
             </div>
             {block.props.buttonText && (
               <a
                 href={block.props.buttonHref || "/quote"}
                 className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover-elevate"
+                data-testid={`link-contact-cta-${block.id}`}
               >
                 {block.props.buttonText}
               </a>
@@ -244,9 +266,13 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
     default:
       return (
         <section className="py-8 px-6 max-w-4xl mx-auto" data-testid={`block-unknown-${block.id}`}>
-          <div className="bg-muted/30 rounded-md p-4 text-sm text-muted-foreground">
-            Block type "{block.type}" is not recognized.
-          </div>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">
+                Block type "{block.type}" is not recognized.
+              </p>
+            </CardContent>
+          </Card>
         </section>
       );
   }
@@ -261,7 +287,7 @@ function ProjectGalleryBlock({ block }: { block: BlockInstance }) {
   const visible = (projects || []).slice(0, maxItems);
 
   return (
-    <section className="py-16 px-6" data-testid={`block-project-gallery-${block.id}`}>
+    <section className="py-16 sm:py-20 px-6" data-testid={`block-project-gallery-${block.id}`}>
       <div className="max-w-5xl mx-auto">
         {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
         {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
@@ -273,13 +299,13 @@ function ProjectGalleryBlock({ block }: { block: BlockInstance }) {
               const images = Array.isArray(project.beforeAfter) ? (project.beforeAfter as { url: string; label?: string }[]) : [];
               const services = Array.isArray(project.services) ? (project.services as string[]) : [];
               return (
-                <div key={project.id} className="bg-card rounded-md border overflow-hidden" data-testid={`gallery-project-${project.id}`}>
+                <Card key={project.id} className="overflow-hidden" data-testid={`gallery-project-${project.id}`}>
                   {images.length > 0 && (
                     <div className="aspect-video overflow-hidden">
-                      <img src={images[0].url} alt={images[0].label || project.title} className="w-full h-full object-cover" />
+                      <img src={images[0].url} alt={images[0].label || project.title} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   )}
-                  <div className="p-4 space-y-2">
+                  <CardContent className="p-4 space-y-2">
                     <h3 className="font-semibold">{project.title}</h3>
                     {project.location && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{project.location}</p>
@@ -292,8 +318,8 @@ function ProjectGalleryBlock({ block }: { block: BlockInstance }) {
                         ))}
                       </div>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
@@ -312,7 +338,7 @@ function TestimonialsSliderBlock({ block }: { block: BlockInstance }) {
   const visible = (testimonials || []).slice(0, maxItems);
 
   return (
-    <section className="py-16 px-6 bg-muted/30" data-testid={`block-testimonials-slider-${block.id}`}>
+    <section className="py-16 sm:py-20 px-6 bg-gradient-section" data-testid={`block-testimonials-slider-${block.id}`}>
       <div className="max-w-5xl mx-auto">
         {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
         {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
@@ -321,23 +347,25 @@ function TestimonialsSliderBlock({ block }: { block: BlockInstance }) {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {visible.map((t) => (
-              <div key={t.id} className="bg-card rounded-md p-6 border" data-testid={`testimonial-card-${t.id}`}>
-                <p className="text-sm text-muted-foreground italic mb-4">"{t.quote}"</p>
-                {t.rating && (
-                  <div className="flex items-center gap-0.5 mb-3">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <Star
-                        key={n}
-                        className={`h-3.5 w-3.5 ${n <= t.rating! ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                      />
-                    ))}
+              <Card key={t.id} data-testid={`testimonial-card-${t.id}`}>
+                <CardContent className="p-6">
+                  <p className="text-sm text-muted-foreground italic mb-4">"{t.quote}"</p>
+                  {t.rating && (
+                    <div className="flex items-center gap-0.5 mb-3">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star
+                          key={n}
+                          className={`h-3.5 w-3.5 ${n <= t.rating! ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <div>
+                    {t.name && <p className="text-sm font-medium">{t.name}</p>}
+                    {t.area && <p className="text-xs text-muted-foreground">{t.area}</p>}
                   </div>
-                )}
-                <div>
-                  {t.name && <p className="text-sm font-medium">{t.name}</p>}
-                  {t.area && <p className="text-xs text-muted-foreground">{t.area}</p>}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

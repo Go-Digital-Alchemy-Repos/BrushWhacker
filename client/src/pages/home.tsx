@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { Section, SectionHeaderPro, ImageFloat, TrustRow } from "@/components/premium";
 import { STOCK_IMAGES } from "@/lib/stock-images";
 import { SERVICES } from "@/lib/services-data";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import {
-  TreePine, Axe, Mountain, Trees,
+  TreePine, Axe, Mountain,
   Shield, Clock, Star, ArrowRight, Phone, CheckCircle2,
-  MapPin, Leaf, Zap, Users, Eye, HardHat, Fence, Bug, Quote
+  MapPin, Leaf, Zap, Eye, HardHat, Fence, Bug, Quote
 } from "lucide-react";
 
 const SERVICE_ICONS: Record<string, typeof Mountain> = {
@@ -147,7 +148,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-24" style={{ background: "linear-gradient(to top, hsl(var(--background)), transparent)" }} />
       </section>
 
-      <section className="relative -mt-8 z-10 pb-8" data-testid="stats-section">
+      <section className="relative -mt-8 z-10 pb-4" data-testid="stats-section">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="overflow-visible">
             <CardContent className="p-0">
@@ -167,15 +168,25 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 section-divider pt-20" data-testid="what-we-clear-section">
+      <div className="section-separator max-w-5xl mx-auto" />
+
+      <TrustRow
+        items={[
+          { icon: Shield, text: "Fully Insured" },
+          { icon: Zap, text: "Same-Week Scheduling" },
+          { icon: Star, text: "5-Star Rated" },
+          { icon: MapPin, text: "Charlotte, NC" },
+        ]}
+        className="max-w-3xl mx-auto py-6"
+      />
+
+      <Section variant="default" data-testid="what-we-clear-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">What We Do</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What We Clear</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              From tangled undergrowth to wide-open fields, we have the equipment and know-how to handle it all.
-            </p>
-          </div>
+          <SectionHeaderPro
+            eyebrow="What We Do"
+            title="What We Clear"
+            subtitle="From tangled undergrowth to wide-open fields, we have the equipment and know-how to handle it all."
+          />
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {whatWeClear.map((item) => (
               <Card key={item.title} className="hover-elevate group" data-testid={`card-clear-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>
@@ -190,17 +201,15 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20" data-testid="services-section">
+      <Section variant="tinted" data-testid="services-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Our Expertise</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Services</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              Whether it's a half-acre residential lot or 50 acres of rural land, we bring the right equipment and get it done.
-            </p>
-          </div>
+          <SectionHeaderPro
+            eyebrow="Our Expertise"
+            title="Our Services"
+            subtitle="Whether it's a half-acre residential lot or 50 acres of rural land, we bring the right equipment and get it done."
+          />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {SERVICES.map((service) => {
               const IconComp = SERVICE_ICONS[service.slug] || TreePine;
@@ -212,6 +221,7 @@ export default function Home() {
                         src={service.image}
                         alt={service.title}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)" }} />
                       <div className="absolute bottom-3 left-3 right-3">
@@ -242,20 +252,19 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-24 relative overflow-hidden" data-testid="process-section">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge variant="secondary" className="mb-4 no-default-active-elevate">Simple Process</Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">How It Works</h2>
-          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-            Three simple steps from overgrown to cleared and clean.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-8 mt-14 relative">
+      <Section variant="pattern" className="spotlight-glow" data-testid="process-section">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <SectionHeaderPro
+            eyebrow="Simple Process"
+            title="How It Works"
+            subtitle="Three simple steps from overgrown to cleared and clean."
+          />
+          <div className="grid sm:grid-cols-3 gap-8 mt-4 relative">
             <div className="hidden sm:block absolute top-6 left-[20%] right-[20%] h-px border-t-2 border-dashed border-primary/20" />
-            {processSteps.map((item) => (
-              <div key={item.step} className="relative text-center space-y-4">
+            {processSteps.map((item, i) => (
+              <div key={item.step} className={`relative text-center space-y-4 animate-fade-up animate-fade-up-delay-${i + 1}`}>
                 <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto text-lg font-bold relative z-10 ring-4 ring-background" data-testid={`process-step-${item.step}`}>
                   {item.step}
                 </div>
@@ -265,20 +274,20 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20" data-testid="why-section">
+      <Section data-testid="why-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge variant="secondary" className="mb-4 no-default-active-elevate">Why Choose Us</Badge>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                Why BrushWhackers
-              </h2>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
-                We're not a general contractor who happens to own a mulcher. Forestry mulching and land clearing is all we do — and we've spent years building the equipment lineup, crew, and processes to do it better than anyone in the Charlotte area.
-              </p>
-              <div className="mt-8 space-y-4">
+              <SectionHeaderPro
+                eyebrow="Why Choose Us"
+                title="Why BrushWhackers"
+                align="left"
+                subtitle="We're not a general contractor who happens to own a mulcher. Forestry mulching and land clearing is all we do — and we've spent years building the equipment lineup, crew, and processes to do it better than anyone in the Charlotte area."
+                className="mb-8"
+              />
+              <div className="space-y-4">
                 {whyBrushWhackers.map((b) => (
                   <div key={b.text} className="flex gap-4 items-start">
                     <div className="h-10 w-10 shrink-0 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))" }}>
@@ -299,13 +308,11 @@ export default function Home() {
               </div>
             </div>
             <div className="relative">
-              <div className="rounded-md overflow-hidden aspect-[4/3] relative">
-                <img
-                  src={STOCK_IMAGES.heavyEquipment}
-                  alt="Heavy equipment clearing land"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <ImageFloat
+                src={STOCK_IMAGES.heavyEquipment}
+                alt="Heavy equipment clearing land"
+                data-testid="img-heavy-equipment"
+              />
               <div className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground rounded-md p-4 hidden lg:flex items-center gap-3">
                 <Shield className="h-8 w-8" />
                 <div>
@@ -316,17 +323,15 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20 section-divider pt-20" data-testid="service-area-section">
+      <Section variant="gradient" data-testid="service-area-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Coverage Area</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Service Area</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              We proudly serve properties within about an hour of the Charlotte metro.
-            </p>
-          </div>
+          <SectionHeaderPro
+            eyebrow="Coverage Area"
+            title="Service Area"
+            subtitle="We proudly serve properties within about an hour of the Charlotte metro."
+          />
           <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto" data-testid="text-service-area">
             {serviceTowns.map((town) => (
               <Badge key={town} variant="outline" className="px-4 py-2 text-sm no-default-active-elevate">
@@ -340,17 +345,15 @@ export default function Home() {
             <Link href="/quote" className="text-primary font-medium ml-1">Contact us to check.</Link>
           </p>
         </div>
-      </section>
+      </Section>
 
-      <section className="py-16 sm:py-20" data-testid="testimonials-section">
+      <Section data-testid="testimonials-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 no-default-active-elevate">Real Reviews</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What Our Customers Say</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              Real feedback from property owners across the Charlotte region.
-            </p>
-          </div>
+          <SectionHeaderPro
+            eyebrow="Real Reviews"
+            title="What Our Customers Say"
+            subtitle="Real feedback from property owners across the Charlotte region."
+          />
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {testimonials.map((t, i) => (
               <Card key={i} className="h-full" data-testid={`card-testimonial-${i}`}>
@@ -362,7 +365,7 @@ export default function Home() {
                     ))}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed flex-1 italic">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-2 border-t">
+                  <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
                     <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-sm font-bold text-primary">{t.name[0]}</span>
                     </div>
@@ -376,7 +379,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
       <section className="relative overflow-hidden" data-testid="cta-section">
         <div
