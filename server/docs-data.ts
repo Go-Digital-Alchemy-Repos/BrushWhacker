@@ -22,7 +22,7 @@ export function getDocsEntries(): DocsEntry[] {
 - **Center**: Sortable canvas with device preview (Desktop/Tablet/Mobile)
 - **Right**: Inspector with Block properties, SEO, and Content Checklist tabs
 
-**Block Types (10 system blocks):**
+**Block Types (12 system blocks):**
 | Block | Key | Description |
 |-------|-----|-------------|
 | Hero | \`hero\` | Full-width hero with headline, subheadline, background image, CTA |

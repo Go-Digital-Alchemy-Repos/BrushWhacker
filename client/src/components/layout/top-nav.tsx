@@ -38,7 +38,7 @@ export function TopNav() {
             )}
             <span className="text-xl font-bold tracking-tight" data-testid="text-company-name">
               {settings.companyName === "Brush Boss" ? (
-                <>Brush<span className="text-primary">Whackers</span></>
+                <>Brush<span className="text-primary"> Boss</span></>
               ) : (
                 settings.companyName
               )}

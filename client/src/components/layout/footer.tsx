@@ -38,7 +38,7 @@ export function Footer() {
                 )}
                 <span className="text-lg font-bold tracking-tight">
                   {settings.companyName === "Brush Boss" ? (
-                    <>Brush<span className="text-primary">Whackers</span></>
+                    <>Brush<span className="text-primary"> Boss</span></>
                   ) : (
                     settings.companyName
                   )}
