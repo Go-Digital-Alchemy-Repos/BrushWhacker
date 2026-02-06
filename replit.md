@@ -21,7 +21,8 @@ The application is built with a React + Vite frontend, a Node/Express backend, a
 - **Frontend Framework**: React with Vite for fast development and TypeScript for type safety.
 - **Styling**: Tailwind CSS for utility-first styling and Shadcn UI for pre-built, accessible components.
 - **Branding System**: Site-wide branding is configurable via `site_settings` table, allowing dynamic updates to company name, contact info, logo, primary/secondary colors (HSL format for Tailwind compatibility), and font family. These settings are applied across the site and in the admin branding page with a live preview.
-- **Color Scheme**: Earth tones are used throughout, featuring warm browns and sage greens. Light and dark modes are implemented with complementary palettes.
+- **Color Scheme**: Earth tones are used throughout, featuring warm browns and sage greens. Light and dark modes are implemented with complementary palettes. Extended design tokens include `--surface`, `--surface-2`, `--container-max`, `--grad-primary`, and radius scale (`--radius-sm/md/lg`).
+- **Premium Components**: Reusable layout components in `client/src/components/premium.tsx` (Section, SectionHeaderPro, ImageFloat, TrustRow) compose Shadcn primitives non-destructively for consistent visual hierarchy across marketing pages.
 - **SEO Approach**: Each page utilizes unique titles and meta descriptions, incorporates regional keywords (Charlotte, NC), and features problem/solution messaging. A dynamic sitemap, robots.txt, JSON-LD structured data, and canonical URL support are included.
 
 **Technical Implementations:**

@@ -47,6 +47,13 @@
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: .5rem;
+  --radius-sm: .25rem;
+  --radius-md: .5rem;
+  --radius-lg: .75rem;
+  --surface: 40 20% 98%;
+  --surface-2: 38 18% 96%;
+  --container-max: 1100px;
+  --grad-primary: linear-gradient(135deg, hsl(28 65% 42%), hsl(28 65% 48%));
   --shadow-2xs: 0px 2px 0px 0px hsl(35 15% 88% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(35 15% 88% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(35 15% 88% / 0.00), 0px 1px 2px -1px hsl(35 15% 88% / 0.00);
@@ -127,6 +134,13 @@
   --chart-3: 35 55% 60%;
   --chart-4: 20 50% 45%;
   --chart-5: 45 60% 55%;
+  --radius-sm: .25rem;
+  --radius-md: .5rem;
+  --radius-lg: .75rem;
+  --surface: 30 10% 10%;
+  --surface-2: 30 12% 13%;
+  --container-max: 1100px;
+  --grad-primary: linear-gradient(135deg, hsl(30 60% 50%), hsl(30 60% 56%));
   --shadow-2xs: 0px 2px 0px 0px hsl(30 12% 18% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(30 12% 18% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(30 12% 18% / 0.00), 0px 1px 2px -1px hsl(30 12% 18% / 0.00);
