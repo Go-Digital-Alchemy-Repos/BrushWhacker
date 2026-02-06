@@ -107,6 +107,8 @@ export interface IStorage {
   updateCrmProject(id: string, data: Partial<UpdateCrmProject>): Promise<CrmProject | undefined>;
   deleteCrmProject(id: string): Promise<boolean>;
   getPublishedProjects(): Promise<CrmProject[]>;
+  getProjectBySlug(slug: string): Promise<CrmProject | undefined>;
+  getProjectByLeadId(leadId: number): Promise<CrmProject | undefined>;
   getTestimonials(): Promise<CmsTestimonial[]>;
   getTestimonial(id: string): Promise<CmsTestimonial | undefined>;
   createTestimonial(data: InsertCmsTestimonial): Promise<CmsTestimonial>;
@@ -638,6 +640,16 @@ export class DatabaseStorage implements IStorage {
 
   async getPublishedProjects(): Promise<CrmProject[]> {
     return db.select().from(crmProjects).where(eq(crmProjects.publish, true)).orderBy(desc(crmProjects.createdAt));
+  }
+
+  async getProjectBySlug(slug: string): Promise<CrmProject | undefined> {
+    const [project] = await db.select().from(crmProjects).where(eq(crmProjects.slug, slug));
+    return project;
+  }
+
+  async getProjectByLeadId(leadId: number): Promise<CrmProject | undefined> {
+    const [project] = await db.select().from(crmProjects).where(eq(crmProjects.leadId, leadId));
+    return project;
   }
 
   async getTestimonials(): Promise<CmsTestimonial[]> {

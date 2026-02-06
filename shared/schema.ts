@@ -433,12 +433,19 @@ export const crmProjects = pgTable("crm_projects", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   leadId: integer("lead_id"),
+  slug: text("slug"),
   title: text("title").notNull(),
   location: text("location"),
+  description: text("description"),
   beforeAfter: jsonb("before_after").default([]),
   summary: text("summary"),
   services: jsonb("services").default([]),
+  featured: boolean("featured").notNull().default(false),
   publish: boolean("publish").notNull().default(false),
+  coverImageUrl: text("cover_image_url"),
+  coverImageAlt: text("cover_image_alt"),
+  gallery: jsonb("gallery").default([]),
+  tags: jsonb("tags").default([]),
 });
 
 export const insertCrmProjectSchema = createInsertSchema(crmProjects).omit({
@@ -449,12 +456,19 @@ export const insertCrmProjectSchema = createInsertSchema(crmProjects).omit({
 
 export const updateCrmProjectSchema = z.object({
   title: z.string().optional(),
+  slug: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
   leadId: z.number().nullable().optional(),
   beforeAfter: z.array(z.object({ url: z.string(), label: z.string().optional() })).optional(),
   summary: z.string().nullable().optional(),
   services: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
   publish: z.boolean().optional(),
+  coverImageUrl: z.string().nullable().optional(),
+  coverImageAlt: z.string().nullable().optional(),
+  gallery: z.array(z.object({ url: z.string(), alt: z.string().optional(), title: z.string().optional() })).optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export type CrmProject = typeof crmProjects.$inferSelect;

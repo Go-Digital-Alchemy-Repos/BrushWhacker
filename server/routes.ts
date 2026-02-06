@@ -597,12 +597,19 @@ export async function registerRoutes(
       if (isNaN(leadId)) return res.status(400).json({ error: "Invalid lead ID" });
       const lead = await storage.getLead(leadId);
       if (!lead) return res.status(404).json({ error: "Lead not found" });
+      const existing = await storage.getProjectByLeadId(leadId);
+      if (existing) return res.status(409).json({ error: "Project already exists for this lead", projectId: existing.id });
+      const title = req.body.title || `${lead.fullName} - ${(lead.servicesNeeded || []).join(", ")}`;
+      const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      const slug = req.body.slug || `${baseSlug}-${Date.now().toString(36)}`;
       const project = await storage.createCrmProject({
         leadId,
-        title: `${lead.fullName} - ${(lead.servicesNeeded || []).join(", ")}`,
+        title,
+        slug,
         location: lead.jobAddress || lead.county || "",
         services: lead.servicesNeeded || [],
         summary: lead.desiredOutcome || "",
+        featured: req.body.featured || false,
         publish: false,
       });
       return res.status(201).json(project);
@@ -724,6 +731,17 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Failed to fetch public projects:", err);
       return res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/public/projects/:slug", async (req, res) => {
+    try {
+      const project = await storage.getProjectBySlug(req.params.slug);
+      if (!project || !project.publish) return res.status(404).json({ error: "Project not found" });
+      return res.json(project);
+    } catch (err) {
+      console.error("Failed to fetch project by slug:", err);
+      return res.status(500).json({ error: "Failed to fetch project" });
     }
   });
 
