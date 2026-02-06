@@ -32,9 +32,9 @@ export function Footer() {
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2" data-testid="footer-logo">
                 {settings.logoUrl ? (
-                  <img src={settings.logoUrl} alt={settings.companyName} className="h-14 w-14 object-contain" />
+                  <img src={settings.logoUrl} alt={settings.companyName} className="h-32 w-32 object-contain" />
                 ) : (
-                  <TreePine className="h-14 w-14 text-primary" />
+                  <TreePine className="h-32 w-32 text-primary" />
                 )}
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">

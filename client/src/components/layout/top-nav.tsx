@@ -32,9 +32,9 @@ export function TopNav() {
         <div className="flex items-center justify-between h-16 gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0" data-testid="link-home-logo">
             {settings.logoUrl ? (
-              <img src={settings.logoUrl} alt={settings.companyName} className="h-16 w-16 object-contain" />
+              <img src={settings.logoUrl} alt={settings.companyName} className="h-36 w-36 object-contain" />
             ) : (
-              <TreePine className="h-16 w-16 text-primary" />
+              <TreePine className="h-36 w-36 text-primary" />
             )}
           </Link>
 
