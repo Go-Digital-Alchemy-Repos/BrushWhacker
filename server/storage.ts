@@ -13,9 +13,11 @@ import {
   type CmsRedirect, type InsertCmsRedirect,
   type CmsPageRevision,
   type AdminUser, type InsertAdminUser, type UpdateAdminUser,
+  type CrmProject, type InsertCrmProject, type UpdateCrmProject,
+  type CmsTestimonial, type InsertCmsTestimonial, type UpdateCmsTestimonial,
   leads, leadNotes, leadActivity, blogPosts, siteSettings,
   cmsPages, cmsTemplates, cmsBlockLibrary, cmsMedia, themePresets, cmsRedirects,
-  cmsPageRevisions, adminUsers,
+  cmsPageRevisions, adminUsers, crmProjects, cmsTestimonials,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -98,6 +100,18 @@ export interface IStorage {
   createAdminUser(data: InsertAdminUser): Promise<AdminUser>;
   updateAdminUser(id: string, data: Partial<UpdateAdminUser>): Promise<AdminUser | undefined>;
   deleteAdminUser(id: string): Promise<boolean>;
+  getCrmProjects(): Promise<CrmProject[]>;
+  getCrmProject(id: string): Promise<CrmProject | undefined>;
+  createCrmProject(data: InsertCrmProject): Promise<CrmProject>;
+  updateCrmProject(id: string, data: Partial<UpdateCrmProject>): Promise<CrmProject | undefined>;
+  deleteCrmProject(id: string): Promise<boolean>;
+  getPublishedProjects(): Promise<CrmProject[]>;
+  getTestimonials(): Promise<CmsTestimonial[]>;
+  getTestimonial(id: string): Promise<CmsTestimonial | undefined>;
+  createTestimonial(data: InsertCmsTestimonial): Promise<CmsTestimonial>;
+  updateTestimonial(id: string, data: Partial<UpdateCmsTestimonial>): Promise<CmsTestimonial | undefined>;
+  deleteTestimonial(id: string): Promise<boolean>;
+  getPublishedTestimonials(): Promise<CmsTestimonial[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -589,6 +603,62 @@ export class DatabaseStorage implements IStorage {
   async deleteAdminUser(id: string): Promise<boolean> {
     const result = await db.delete(adminUsers).where(eq(adminUsers.id, id)).returning();
     return result.length > 0;
+  }
+
+  async getCrmProjects(): Promise<CrmProject[]> {
+    return db.select().from(crmProjects).orderBy(desc(crmProjects.createdAt));
+  }
+
+  async getCrmProject(id: string): Promise<CrmProject | undefined> {
+    const [project] = await db.select().from(crmProjects).where(eq(crmProjects.id, id));
+    return project;
+  }
+
+  async createCrmProject(data: InsertCrmProject): Promise<CrmProject> {
+    const [created] = await db.insert(crmProjects).values(data).returning();
+    return created;
+  }
+
+  async updateCrmProject(id: string, data: Partial<UpdateCrmProject>): Promise<CrmProject | undefined> {
+    const [updated] = await db.update(crmProjects).set({ ...data, updatedAt: new Date() } as any).where(eq(crmProjects.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCrmProject(id: string): Promise<boolean> {
+    const result = await db.delete(crmProjects).where(eq(crmProjects.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getPublishedProjects(): Promise<CrmProject[]> {
+    return db.select().from(crmProjects).where(eq(crmProjects.publish, true)).orderBy(desc(crmProjects.createdAt));
+  }
+
+  async getTestimonials(): Promise<CmsTestimonial[]> {
+    return db.select().from(cmsTestimonials).orderBy(desc(cmsTestimonials.createdAt));
+  }
+
+  async getTestimonial(id: string): Promise<CmsTestimonial | undefined> {
+    const [testimonial] = await db.select().from(cmsTestimonials).where(eq(cmsTestimonials.id, id));
+    return testimonial;
+  }
+
+  async createTestimonial(data: InsertCmsTestimonial): Promise<CmsTestimonial> {
+    const [created] = await db.insert(cmsTestimonials).values(data).returning();
+    return created;
+  }
+
+  async updateTestimonial(id: string, data: Partial<UpdateCmsTestimonial>): Promise<CmsTestimonial | undefined> {
+    const [updated] = await db.update(cmsTestimonials).set({ ...data, updatedAt: new Date() } as any).where(eq(cmsTestimonials.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTestimonial(id: string): Promise<boolean> {
+    const result = await db.delete(cmsTestimonials).where(eq(cmsTestimonials.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getPublishedTestimonials(): Promise<CmsTestimonial[]> {
+    return db.select().from(cmsTestimonials).where(eq(cmsTestimonials.publish, true)).orderBy(desc(cmsTestimonials.createdAt));
   }
 }
 

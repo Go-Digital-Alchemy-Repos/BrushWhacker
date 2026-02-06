@@ -402,6 +402,68 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type UpdateAdminUser = z.infer<typeof updateAdminUserSchema>;
 
+export const crmProjects = pgTable("crm_projects", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  leadId: integer("lead_id"),
+  title: text("title").notNull(),
+  location: text("location"),
+  beforeAfter: jsonb("before_after").default([]),
+  summary: text("summary"),
+  services: jsonb("services").default([]),
+  publish: boolean("publish").notNull().default(false),
+});
+
+export const insertCrmProjectSchema = createInsertSchema(crmProjects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCrmProjectSchema = z.object({
+  title: z.string().optional(),
+  location: z.string().nullable().optional(),
+  leadId: z.number().nullable().optional(),
+  beforeAfter: z.array(z.object({ url: z.string(), label: z.string().optional() })).optional(),
+  summary: z.string().nullable().optional(),
+  services: z.array(z.string()).optional(),
+  publish: z.boolean().optional(),
+});
+
+export type CrmProject = typeof crmProjects.$inferSelect;
+export type InsertCrmProject = z.infer<typeof insertCrmProjectSchema>;
+export type UpdateCrmProject = z.infer<typeof updateCrmProjectSchema>;
+
+export const cmsTestimonials = pgTable("cms_testimonials", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  name: text("name"),
+  area: text("area"),
+  quote: text("quote").notNull(),
+  rating: integer("rating"),
+  publish: boolean("publish").notNull().default(true),
+});
+
+export const insertCmsTestimonialSchema = createInsertSchema(cmsTestimonials).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCmsTestimonialSchema = z.object({
+  name: z.string().nullable().optional(),
+  area: z.string().nullable().optional(),
+  quote: z.string().optional(),
+  rating: z.number().min(1).max(5).nullable().optional(),
+  publish: z.boolean().optional(),
+});
+
+export type CmsTestimonial = typeof cmsTestimonials.$inferSelect;
+export type InsertCmsTestimonial = z.infer<typeof insertCmsTestimonialSchema>;
+export type UpdateCmsTestimonial = z.infer<typeof updateCmsTestimonialSchema>;
+
 export interface BlockInstance {
   id: string;
   type: string;

@@ -276,6 +276,46 @@ const SYSTEM_BLOCKS = [
       ],
     },
   },
+  {
+    key: "project_gallery",
+    name: "Project Gallery",
+    category: "Dynamic",
+    icon: "FolderOpen",
+    description: "Displays published portfolio projects with before/after images from the CRM. Data is fetched automatically from published projects.",
+    isSystem: true,
+    defaultProps: {
+      heading: "Our Recent Projects",
+      subheading: "See the results of our land clearing and forestry mulching work across the Charlotte area.",
+      maxItems: 6,
+    },
+    schema: {
+      fields: [
+        { key: "heading", label: "Section Heading", type: "text" },
+        { key: "subheading", label: "Sub-heading", type: "textarea" },
+        { key: "maxItems", label: "Max Projects to Show", type: "number" },
+      ],
+    },
+  },
+  {
+    key: "testimonials_slider",
+    name: "Testimonials",
+    category: "Dynamic",
+    icon: "MessageSquareQuote",
+    description: "Displays published customer testimonials with star ratings. Data is fetched automatically from the testimonials CMS.",
+    isSystem: true,
+    defaultProps: {
+      heading: "What Our Customers Say",
+      subheading: "Real reviews from property owners across the Charlotte region.",
+      maxItems: 6,
+    },
+    schema: {
+      fields: [
+        { key: "heading", label: "Section Heading", type: "text" },
+        { key: "subheading", label: "Sub-heading", type: "textarea" },
+        { key: "maxItems", label: "Max Testimonials to Show", type: "number" },
+      ],
+    },
+  },
 ];
 
 const THEME_PRESETS = [
@@ -429,9 +469,13 @@ export async function seedCmsData() {
     .from(cmsBlockLibrary);
 
   if (blockCount[0].count > 0) {
-    console.log(`[seed-cms] Blocks already exist (${blockCount[0].count} found), skipping block seeding.`);
+    console.log(`[seed-cms] Blocks already exist (${blockCount[0].count} found), upserting any new blocks...`);
+    await db
+      .insert(cmsBlockLibrary)
+      .values(SYSTEM_BLOCKS)
+      .onConflictDoNothing();
   } else {
-    console.log("[seed-cms] Inserting 10 system blocks into cms_block_library...");
+    console.log(`[seed-cms] Inserting ${SYSTEM_BLOCKS.length} system blocks into cms_block_library...`);
     await db
       .insert(cmsBlockLibrary)
       .values(SYSTEM_BLOCKS)

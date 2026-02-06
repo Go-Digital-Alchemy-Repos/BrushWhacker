@@ -33,6 +33,8 @@ export function getDocsEntries(): DocsEntry[] {
 | FAQ | \`faq\` | Collapsible question/answer list |
 | Pricing Table | \`pricing_table\` | Tiered pricing cards |
 | Contact CTA | \`contact_cta\` | Contact info with CTA button |
+| Project Gallery | \`project_gallery\` | Dynamic: published CRM projects with before/after images |
+| Testimonials Slider | \`testimonials_slider\` | Dynamic: published testimonials with star ratings |
 
 **Block Instance Format:**
 \`\`\`json
@@ -872,6 +874,79 @@ If \`PUBLIC_SITE_URL\` is not set, the application falls back to using the \`Hos
 - The robots.txt Sitemap directive must point to the correct domain`,
       updatedAt: now,
       tags: ["deployment", "environment", "domain", "configuration"],
+    },
+
+    {
+      category: "CRM",
+      title: "Projects (Portfolio Gallery)",
+      bodyMarkdown: `Projects convert completed CRM leads into public portfolio entries with before/after images.
+
+**Admin Routes (super_admin, admin, sales):**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | \`/api/admin/projects\` | List all projects |
+| GET | \`/api/admin/projects/:id\` | Get single project |
+| POST | \`/api/admin/projects\` | Create project |
+| POST | \`/api/admin/projects/from-lead/:leadId\` | Create from lead |
+| PATCH | \`/api/admin/projects/:id\` | Update project |
+| DELETE | \`/api/admin/projects/:id\` | Delete project |
+
+**Public Route:** \`GET /api/public/projects\` (cached, ETag support)
+
+**Schema:**
+\`\`\`json
+{
+  "id": "uuid",
+  "leadId": 123,
+  "title": "Smith Lot Clearing",
+  "location": "Huntersville, NC",
+  "beforeAfter": [{ "url": "/uploads/before.jpg", "label": "Before" }],
+  "summary": "Cleared 2 acres of overgrowth...",
+  "services": ["Forestry Mulching", "Trail Cutting"],
+  "publish": true
+}
+\`\`\`
+
+**Create from Lead:** \`POST /api/admin/projects/from-lead/:leadId\` auto-populates title, location, services, and summary from the lead's data.
+
+**CMS Integration:** Add a \`project_gallery\` block to any CMS page to display published projects. The block fetches data from \`/api/public/projects\` at render time.`,
+      updatedAt: now,
+      tags: ["crm", "projects", "portfolio", "gallery", "lead-conversion"],
+    },
+
+    {
+      category: "CRM",
+      title: "Testimonials",
+      bodyMarkdown: `Testimonials manage customer reviews for display on the public site via CMS blocks.
+
+**Admin Routes (super_admin, admin, editor):**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | \`/api/admin/testimonials\` | List all testimonials |
+| GET | \`/api/admin/testimonials/:id\` | Get single testimonial |
+| POST | \`/api/admin/testimonials\` | Create testimonial |
+| PATCH | \`/api/admin/testimonials/:id\` | Update testimonial |
+| DELETE | \`/api/admin/testimonials/:id\` | Delete testimonial |
+
+**Public Route:** \`GET /api/public/testimonials\` (cached, ETag support)
+
+**Schema:**
+\`\`\`json
+{
+  "id": "uuid",
+  "name": "John Smith",
+  "area": "Huntersville, NC",
+  "quote": "They did an amazing job clearing our lot...",
+  "rating": 5,
+  "publish": true
+}
+\`\`\`
+
+**Star Rating:** 1-5 integer, nullable (null = no rating shown).
+
+**CMS Integration:** Add a \`testimonials_slider\` block to any CMS page to display published testimonials with star ratings. The block fetches data from \`/api/public/testimonials\` at render time.`,
+      updatedAt: now,
+      tags: ["crm", "testimonials", "reviews", "cms-block"],
     },
   ];
 }

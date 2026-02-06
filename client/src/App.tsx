@@ -29,6 +29,8 @@ import AdminCmsBlocks from "@/pages/admin/cms-blocks";
 import AdminCmsMedia from "@/pages/admin/cms-media";
 import AdminCmsThemes from "@/pages/admin/cms-themes";
 import AdminCmsRedirects from "@/pages/admin/cms-redirects";
+import AdminCrmProjects from "@/pages/admin/crm-projects";
+import AdminCmsTestimonials from "@/pages/admin/cms-testimonials";
 
 function Router() {
   return (
@@ -45,6 +47,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/leads" component={AdminLeads} />
       <Route path="/admin/leads/:id" component={LeadDetail} />
+      <Route path="/admin/crm/projects" component={AdminCrmProjects} />
       <Route path="/admin/cms" component={AdminCmsHome} />
       <Route path="/admin/cms/pages" component={AdminCmsPages} />
       <Route path="/admin/cms/pages/new" component={AdminCmsPageBuilder} />
@@ -56,6 +59,7 @@ function Router() {
       <Route path="/admin/cms/media" component={AdminCmsMedia} />
       <Route path="/admin/cms/themes" component={AdminCmsThemes} />
       <Route path="/admin/cms/redirects" component={AdminCmsRedirects} />
+      <Route path="/admin/cms/testimonials" component={AdminCmsTestimonials} />
       <Route path="/admin/branding" component={AdminBranding} />
       <Route path="/admin/docs" component={AdminDocs} />
       <Route component={NotFound} />

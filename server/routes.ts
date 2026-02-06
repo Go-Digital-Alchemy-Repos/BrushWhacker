@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES, ADMIN_ROLES } from "@shared/schema";
+import { insertLeadSchema, updateLeadSchema, insertBlogPostSchema, updateBlogPostSchema, updateSiteSettingsSchema, LEAD_STATUSES, ADMIN_ROLES, insertCrmProjectSchema, updateCrmProjectSchema, insertCmsTestimonialSchema, updateCmsTestimonialSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import passport from "passport";
@@ -544,6 +544,200 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Failed to update settings:", err);
       return res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // ---- Admin CRM Projects Routes ----
+  app.get("/api/admin/projects", crmAccess, async (_req, res) => {
+    try {
+      const projects = await storage.getCrmProjects();
+      return res.json(projects);
+    } catch (err) {
+      console.error("Failed to fetch projects:", err);
+      return res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/admin/projects/:id", crmAccess, async (req, res) => {
+    try {
+      const project = await storage.getCrmProject(req.params.id);
+      if (!project) return res.status(404).json({ error: "Project not found" });
+      return res.json(project);
+    } catch (err) {
+      console.error("Failed to fetch project:", err);
+      return res.status(500).json({ error: "Failed to fetch project" });
+    }
+  });
+
+  app.post("/api/admin/projects", crmAccess, async (req, res) => {
+    try {
+      const parsed = insertCrmProjectSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const project = await storage.createCrmProject(parsed.data);
+      invalidateCache("public:projects");
+      return res.status(201).json(project);
+    } catch (err) {
+      console.error("Failed to create project:", err);
+      return res.status(500).json({ error: "Failed to create project" });
+    }
+  });
+
+  app.post("/api/admin/projects/from-lead/:leadId", crmAccess, async (req, res) => {
+    try {
+      const leadId = parseInt(req.params.leadId);
+      if (isNaN(leadId)) return res.status(400).json({ error: "Invalid lead ID" });
+      const lead = await storage.getLead(leadId);
+      if (!lead) return res.status(404).json({ error: "Lead not found" });
+      const project = await storage.createCrmProject({
+        leadId,
+        title: `${lead.fullName} - ${(lead.servicesNeeded || []).join(", ")}`,
+        location: lead.jobAddress || lead.county || "",
+        services: lead.servicesNeeded || [],
+        summary: lead.desiredOutcome || "",
+        publish: false,
+      });
+      return res.status(201).json(project);
+    } catch (err) {
+      console.error("Failed to create project from lead:", err);
+      return res.status(500).json({ error: "Failed to create project from lead" });
+    }
+  });
+
+  app.patch("/api/admin/projects/:id", crmAccess, async (req, res) => {
+    try {
+      const parsed = updateCrmProjectSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const updated = await storage.updateCrmProject(req.params.id, parsed.data);
+      if (!updated) return res.status(404).json({ error: "Project not found" });
+      invalidateCache("public:projects");
+      return res.json(updated);
+    } catch (err) {
+      console.error("Failed to update project:", err);
+      return res.status(500).json({ error: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/admin/projects/:id", crmAccess, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCrmProject(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Project not found" });
+      invalidateCache("public:projects");
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      return res.status(500).json({ error: "Failed to delete project" });
+    }
+  });
+
+  // ---- Admin Testimonials Routes ----
+  app.get("/api/admin/testimonials", cmsAccess, async (_req, res) => {
+    try {
+      const testimonials = await storage.getTestimonials();
+      return res.json(testimonials);
+    } catch (err) {
+      console.error("Failed to fetch testimonials:", err);
+      return res.status(500).json({ error: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.get("/api/admin/testimonials/:id", cmsAccess, async (req, res) => {
+    try {
+      const testimonial = await storage.getTestimonial(req.params.id);
+      if (!testimonial) return res.status(404).json({ error: "Testimonial not found" });
+      return res.json(testimonial);
+    } catch (err) {
+      console.error("Failed to fetch testimonial:", err);
+      return res.status(500).json({ error: "Failed to fetch testimonial" });
+    }
+  });
+
+  app.post("/api/admin/testimonials", cmsAccess, async (req, res) => {
+    try {
+      const parsed = insertCmsTestimonialSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const testimonial = await storage.createTestimonial(parsed.data);
+      invalidateCache("public:testimonials");
+      return res.status(201).json(testimonial);
+    } catch (err) {
+      console.error("Failed to create testimonial:", err);
+      return res.status(500).json({ error: "Failed to create testimonial" });
+    }
+  });
+
+  app.patch("/api/admin/testimonials/:id", cmsAccess, async (req, res) => {
+    try {
+      const parsed = updateCmsTestimonialSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validation failed", details: parsed.error.flatten().fieldErrors });
+      }
+      const updated = await storage.updateTestimonial(req.params.id, parsed.data);
+      if (!updated) return res.status(404).json({ error: "Testimonial not found" });
+      invalidateCache("public:testimonials");
+      return res.json(updated);
+    } catch (err) {
+      console.error("Failed to update testimonial:", err);
+      return res.status(500).json({ error: "Failed to update testimonial" });
+    }
+  });
+
+  app.delete("/api/admin/testimonials/:id", cmsAccess, async (req, res) => {
+    try {
+      const deleted = await storage.deleteTestimonial(req.params.id);
+      if (!deleted) return res.status(404).json({ error: "Testimonial not found" });
+      invalidateCache("public:testimonials");
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("Failed to delete testimonial:", err);
+      return res.status(500).json({ error: "Failed to delete testimonial" });
+    }
+  });
+
+  // ---- Public Projects & Testimonials ----
+  app.get("/api/public/projects", async (req, res) => {
+    try {
+      const cacheKey = "public:projects";
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) return res.status(304).end();
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=60");
+        return res.json(cached.data);
+      }
+      const projects = await storage.getPublishedProjects();
+      const etag = setCache(cacheKey, projects, 2 * 60 * 1000);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=60");
+      return res.json(projects);
+    } catch (err) {
+      console.error("Failed to fetch public projects:", err);
+      return res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/public/testimonials", async (req, res) => {
+    try {
+      const cacheKey = "public:testimonials";
+      const cached = getCached(cacheKey);
+      if (cached) {
+        if (req.headers["if-none-match"] === cached.etag) return res.status(304).end();
+        res.set("ETag", cached.etag);
+        res.set("Cache-Control", "public, max-age=60");
+        return res.json(cached.data);
+      }
+      const testimonials = await storage.getPublishedTestimonials();
+      const etag = setCache(cacheKey, testimonials, 2 * 60 * 1000);
+      res.set("ETag", etag);
+      res.set("Cache-Control", "public, max-age=60");
+      return res.json(testimonials);
+    } catch (err) {
+      console.error("Failed to fetch public testimonials:", err);
+      return res.status(500).json({ error: "Failed to fetch testimonials" });
     }
   });
 

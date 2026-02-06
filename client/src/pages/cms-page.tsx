@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { Loader2, Eye } from "lucide-react";
+import { Loader2, Eye, Star, MapPin } from "lucide-react";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import type { BlockInstance } from "@shared/schema";
+import type { BlockInstance, CrmProject, CmsTestimonial } from "@shared/schema";
 
 interface CmsPageData {
   id: string;
@@ -235,6 +235,12 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
         </section>
       );
 
+    case "project_gallery":
+      return <ProjectGalleryBlock block={block} />;
+
+    case "testimonials_slider":
+      return <TestimonialsSliderBlock block={block} />;
+
     default:
       return (
         <section className="py-8 px-6 max-w-4xl mx-auto" data-testid={`block-unknown-${block.id}`}>
@@ -244,6 +250,100 @@ function BlockRenderer({ block }: { block: BlockInstance }) {
         </section>
       );
   }
+}
+
+function ProjectGalleryBlock({ block }: { block: BlockInstance }) {
+  const maxItems = block.props.maxItems || 6;
+  const { data: projects } = useQuery<CrmProject[]>({
+    queryKey: ["/api/public/projects"],
+  });
+
+  const visible = (projects || []).slice(0, maxItems);
+
+  return (
+    <section className="py-16 px-6" data-testid={`block-project-gallery-${block.id}`}>
+      <div className="max-w-5xl mx-auto">
+        {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
+        {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
+        {visible.length === 0 ? (
+          <p className="text-center text-muted-foreground text-sm">No projects published yet.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visible.map((project) => {
+              const images = Array.isArray(project.beforeAfter) ? (project.beforeAfter as { url: string; label?: string }[]) : [];
+              const services = Array.isArray(project.services) ? (project.services as string[]) : [];
+              return (
+                <div key={project.id} className="bg-card rounded-md border overflow-hidden" data-testid={`gallery-project-${project.id}`}>
+                  {images.length > 0 && (
+                    <div className="aspect-video overflow-hidden">
+                      <img src={images[0].url} alt={images[0].label || project.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-semibold">{project.title}</h3>
+                    {project.location && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{project.location}</p>
+                    )}
+                    {project.summary && <p className="text-sm text-muted-foreground line-clamp-2">{project.summary}</p>}
+                    {services.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {services.map((s, i) => (
+                          <span key={i} className="text-xs bg-muted px-2 py-0.5 rounded-md">{s}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function TestimonialsSliderBlock({ block }: { block: BlockInstance }) {
+  const maxItems = block.props.maxItems || 6;
+  const { data: testimonials } = useQuery<CmsTestimonial[]>({
+    queryKey: ["/api/public/testimonials"],
+  });
+
+  const visible = (testimonials || []).slice(0, maxItems);
+
+  return (
+    <section className="py-16 px-6 bg-muted/30" data-testid={`block-testimonials-slider-${block.id}`}>
+      <div className="max-w-5xl mx-auto">
+        {block.props.heading && <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">{block.props.heading}</h2>}
+        {block.props.subheading && <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">{block.props.subheading}</p>}
+        {visible.length === 0 ? (
+          <p className="text-center text-muted-foreground text-sm">No testimonials published yet.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visible.map((t) => (
+              <div key={t.id} className="bg-card rounded-md p-6 border" data-testid={`testimonial-card-${t.id}`}>
+                <p className="text-sm text-muted-foreground italic mb-4">"{t.quote}"</p>
+                {t.rating && (
+                  <div className="flex items-center gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={`h-3.5 w-3.5 ${n <= t.rating! ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                )}
+                <div>
+                  {t.name && <p className="text-sm font-medium">{t.name}</p>}
+                  {t.area && <p className="text-xs text-muted-foreground">{t.area}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export default function CmsPage() {

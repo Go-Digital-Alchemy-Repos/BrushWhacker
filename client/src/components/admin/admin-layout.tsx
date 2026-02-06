@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
   TreePine, LayoutDashboard, Users, FileText, Palette, BookOpen,
-  LogOut, Loader2, ExternalLink, Menu, X, Shield, ShieldAlert
+  LogOut, Loader2, ExternalLink, Menu, X, Shield, ShieldAlert,
+  FolderOpen, MessageSquareQuote,
 } from "lucide-react";
 import { useState } from "react";
 import AdminLogin from "@/pages/admin/login";
@@ -19,7 +20,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
   { title: "Leads", href: "/admin/leads", icon: Users, allowedRoles: ["super_admin", "admin", "sales"] },
+  { title: "Projects", href: "/admin/crm/projects", icon: FolderOpen, allowedRoles: ["super_admin", "admin", "sales"] },
   { title: "CMS", href: "/admin/cms", icon: FileText, allowedRoles: ["super_admin", "admin", "editor"] },
+  { title: "Testimonials", href: "/admin/cms/testimonials", icon: MessageSquareQuote, allowedRoles: ["super_admin", "admin", "editor"] },
   { title: "Branding", href: "/admin/branding", icon: Palette, allowedRoles: ["super_admin", "admin"] },
   { title: "Docs", href: "/admin/docs", icon: BookOpen, allowedRoles: ["super_admin", "admin", "editor", "sales"] },
 ];
