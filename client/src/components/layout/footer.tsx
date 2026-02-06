@@ -17,6 +17,7 @@ const companyLinks = [
   { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
   { label: "Get a Quote", href: "/quote" },
+  { label: "Admin", href: "/admin" },
 ];
 
 export function Footer() {
