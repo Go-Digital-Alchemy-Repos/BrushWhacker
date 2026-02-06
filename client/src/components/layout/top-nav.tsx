@@ -32,17 +32,10 @@ export function TopNav() {
         <div className="flex items-center justify-between h-16 gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0" data-testid="link-home-logo">
             {settings.logoUrl ? (
-              <img src={settings.logoUrl} alt={settings.companyName} className="h-8 w-8 object-contain" />
+              <img src={settings.logoUrl} alt={settings.companyName} className="h-16 w-16 object-contain" />
             ) : (
-              <TreePine className="h-8 w-8 text-primary" />
+              <TreePine className="h-16 w-16 text-primary" />
             )}
-            <span className="text-xl font-bold tracking-tight" data-testid="text-company-name">
-              {settings.companyName === "Forestry Boss" ? (
-                <>Forestry<span className="text-primary"> Boss</span></>
-              ) : (
-                settings.companyName
-              )}
-            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -57,7 +50,7 @@ export function TopNav() {
                   <Link href={link.href}>
                     <Button
                       variant="ghost"
-                      className={`gap-1 ${location.startsWith("/services") ? "bg-accent" : ""}`}
+                      className={`gap-1 ${location.startsWith("/services") ? "bg-primary text-primary-foreground" : ""}`}
                       data-testid="link-services"
                     >
                       {link.label}
@@ -85,7 +78,7 @@ export function TopNav() {
                 <Link key={link.label} href={link.href}>
                   <Button
                     variant="ghost"
-                    className={location === link.href ? "bg-accent" : ""}
+                    className={location === link.href ? "bg-primary text-primary-foreground" : ""}
                     data-testid={`link-${link.label.toLowerCase()}`}
                   >
                     {link.label}
@@ -126,7 +119,7 @@ export function TopNav() {
                 <Link
                   href={link.href}
                   onClick={() => !link.hasDropdown && setMobileOpen(false)}
-                  className={`block px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${location === link.href ? "bg-accent text-primary" : "hover-elevate"}`}
+                  className={`block px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${location === link.href ? "bg-primary text-primary-foreground" : "hover-elevate"}`}
                   data-testid={`mobile-link-${link.label.toLowerCase()}`}
                 >
                   {link.label}

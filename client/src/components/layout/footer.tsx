@@ -32,17 +32,10 @@ export function Footer() {
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2" data-testid="footer-logo">
                 {settings.logoUrl ? (
-                  <img src={settings.logoUrl} alt={settings.companyName} className="h-7 w-7 object-contain" />
+                  <img src={settings.logoUrl} alt={settings.companyName} className="h-14 w-14 object-contain" />
                 ) : (
-                  <TreePine className="h-7 w-7 text-primary" />
+                  <TreePine className="h-14 w-14 text-primary" />
                 )}
-                <span className="text-lg font-bold tracking-tight">
-                  {settings.companyName === "Forestry Boss" ? (
-                    <>Forestry<span className="text-primary"> Boss</span></>
-                  ) : (
-                    settings.companyName
-                  )}
-                </span>
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Professional forestry mulching and land clearing services serving the greater {settings.serviceArea}.
