@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AdminLayout from "@/components/admin/admin-layout";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Eye, FileText } from "lucide-react";
+import { ArrowLeft, Save, Eye, FileText, Search, ChevronDown, ChevronUp, CircleCheck, CircleAlert } from "lucide-react";
 import DOMPurify from "dompurify";
 import type { BlogPost } from "@shared/schema";
 
@@ -45,6 +46,19 @@ function renderMarkdown(md: string): string {
     + '</p>';
 }
 
+function SeoScoreIndicator({ label, ok }: { label: string; ok: boolean }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      {ok ? (
+        <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+      ) : (
+        <CircleAlert className="h-4 w-4 text-amber-500 shrink-0" />
+      )}
+      <span className={ok ? "text-muted-foreground" : "text-foreground"}>{label}</span>
+    </div>
+  );
+}
+
 export default function AdminBlogEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -60,6 +74,13 @@ export default function AdminBlogEditor() {
   const [featuredImageUrl, setFeaturedImageUrl] = useState("");
   const [status, setStatus] = useState("draft");
   const [slugManual, setSlugManual] = useState(false);
+
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [canonicalUrl, setCanonicalUrl] = useState("");
+  const [ogImageUrl, setOgImageUrl] = useState("");
+  const [focusKeyword, setFocusKeyword] = useState("");
+  const [seoOpen, setSeoOpen] = useState(false);
 
   const { data: post, isLoading } = useQuery<BlogPost>({
     queryKey: ["/api/admin/blog", id],
@@ -78,6 +99,11 @@ export default function AdminBlogEditor() {
       setFeaturedImageUrl(post.featuredImageUrl || "");
       setStatus(post.status);
       setSlugManual(true);
+      setMetaTitle(post.metaTitle || "");
+      setMetaDescription(post.metaDescription || "");
+      setCanonicalUrl(post.canonicalUrl || "");
+      setOgImageUrl(post.ogImageUrl || "");
+      setFocusKeyword(post.focusKeyword || "");
     }
   }, [post, isNew]);
 
@@ -99,6 +125,11 @@ export default function AdminBlogEditor() {
         featuredImageUrl: featuredImageUrl || null,
         status,
         publishedAt: status === "published" ? (post?.publishedAt || new Date().toISOString()) : null,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        canonicalUrl: canonicalUrl || null,
+        ogImageUrl: ogImageUrl || null,
+        focusKeyword: focusKeyword || null,
       };
       if (isNew) {
         return apiRequest("POST", "/api/admin/blog", body);
@@ -117,6 +148,22 @@ export default function AdminBlogEditor() {
       toast({ title: "Error", description: err.message || "Failed to save post", variant: "destructive" });
     },
   });
+
+  const effectiveMetaTitle = metaTitle || (title ? `${title} | Forestry Boss Blog` : "");
+  const effectiveMetaDesc = metaDescription || excerpt;
+  const metaTitleLen = effectiveMetaTitle.length;
+  const metaDescLen = effectiveMetaDesc.length;
+
+  const seoChecks = {
+    titleLength: metaTitleLen >= 30 && metaTitleLen <= 60,
+    descLength: metaDescLen >= 120 && metaDescLen <= 160,
+    hasKeyword: !!focusKeyword,
+    keywordInTitle: !!focusKeyword && effectiveMetaTitle.toLowerCase().includes(focusKeyword.toLowerCase()),
+    keywordInDesc: !!focusKeyword && effectiveMetaDesc.toLowerCase().includes(focusKeyword.toLowerCase()),
+    hasSlug: !!slug,
+  };
+  const seoScore = Object.values(seoChecks).filter(Boolean).length;
+  const seoTotal = Object.keys(seoChecks).length;
 
   if (!isNew && isLoading) {
     return (
@@ -236,6 +283,128 @@ export default function AdminBlogEditor() {
               data-testid="input-post-image"
             />
           </div>
+
+          <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer flex flex-row items-center justify-between gap-4 py-3 px-4">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-base font-semibold">SEO Settings</CardTitle>
+                    <Badge variant={seoScore >= 5 ? "default" : seoScore >= 3 ? "secondary" : "destructive"} data-testid="badge-seo-score">
+                      {seoScore}/{seoTotal}
+                    </Badge>
+                  </div>
+                  {seoOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-4 pt-0 px-4 pb-4">
+                  <div>
+                    <Label htmlFor="focusKeyword">Focus Keyword</Label>
+                    <Input
+                      id="focusKeyword"
+                      value={focusKeyword}
+                      onChange={(e) => setFocusKeyword(e.target.value)}
+                      placeholder="e.g. forestry mulching charlotte"
+                      data-testid="input-focus-keyword"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Primary keyword to optimize this post for</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="metaTitle">Meta Title</Label>
+                    <Input
+                      id="metaTitle"
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                      placeholder={title ? `${title} | Forestry Boss Blog` : "Custom page title for search engines"}
+                      data-testid="input-meta-title"
+                    />
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {metaTitle ? "Custom title" : "Falls back to post title"}
+                      </p>
+                      <span className={`text-xs font-mono ${metaTitleLen >= 30 && metaTitleLen <= 60 ? "text-green-600 dark:text-green-400" : metaTitleLen > 60 ? "text-red-500" : "text-amber-500"}`}>
+                        {metaTitleLen}/60
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="metaDescription">Meta Description</Label>
+                    <Textarea
+                      id="metaDescription"
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      placeholder={excerpt || "Custom description for search engine results..."}
+                      rows={3}
+                      data-testid="textarea-meta-description"
+                    />
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {metaDescription ? "Custom description" : "Falls back to excerpt"}
+                      </p>
+                      <span className={`text-xs font-mono ${metaDescLen >= 120 && metaDescLen <= 160 ? "text-green-600 dark:text-green-400" : metaDescLen > 160 ? "text-red-500" : "text-amber-500"}`}>
+                        {metaDescLen}/160
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                    <Input
+                      id="canonicalUrl"
+                      value={canonicalUrl}
+                      onChange={(e) => setCanonicalUrl(e.target.value)}
+                      placeholder={`/blog/${slug || "..."}`}
+                      data-testid="input-canonical-url"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Leave empty to use default URL. Set if cross-posting content.</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ogImageUrl">Open Graph Image URL</Label>
+                    <Input
+                      id="ogImageUrl"
+                      value={ogImageUrl}
+                      onChange={(e) => setOgImageUrl(e.target.value)}
+                      placeholder={featuredImageUrl || "https://... (defaults to featured image)"}
+                      data-testid="input-og-image"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Image shown when shared on social media. Falls back to featured image.</p>
+                  </div>
+
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Search Preview</p>
+                      <div className="space-y-1" data-testid="div-search-preview">
+                        <p className="text-sm text-blue-600 dark:text-blue-400 truncate font-medium">
+                          {effectiveMetaTitle || "Post Title | Forestry Boss Blog"}
+                        </p>
+                        <p className="text-xs text-green-700 dark:text-green-500 truncate">
+                          forestryboss.com/blog/{slug || "..."}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {effectiveMetaDesc || "Enter an excerpt or meta description to see a preview..."}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="space-y-2" data-testid="div-seo-checklist">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">SEO Checklist</p>
+                    <SeoScoreIndicator label={`Meta title length (${metaTitleLen} chars, aim for 30-60)`} ok={seoChecks.titleLength} />
+                    <SeoScoreIndicator label={`Meta description length (${metaDescLen} chars, aim for 120-160)`} ok={seoChecks.descLength} />
+                    <SeoScoreIndicator label="Focus keyword set" ok={seoChecks.hasKeyword} />
+                    <SeoScoreIndicator label="Focus keyword in meta title" ok={seoChecks.keywordInTitle} />
+                    <SeoScoreIndicator label="Focus keyword in meta description" ok={seoChecks.keywordInDesc} />
+                    <SeoScoreIndicator label="URL slug set" ok={seoChecks.hasSlug} />
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           <div>
             <Tabs defaultValue="write">

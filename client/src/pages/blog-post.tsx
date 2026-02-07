@@ -64,28 +64,35 @@ export default function BlogPostPage() {
     enabled: !!slug && !!post,
   });
 
+  const pageTitle = post?.metaTitle || (post ? `${post.title} | Forestry Boss Blog` : "Blog | Forestry Boss Charlotte, NC");
+  const pageDescription = post?.metaDescription || post?.excerpt || "Expert tips and guides about land clearing in Charlotte, NC.";
+  const pageCanonical = post?.canonicalUrl || `/blog/${slug}`;
+  const pageOgImage = post?.ogImageUrl || post?.featuredImageUrl || undefined;
+
   usePageMeta({
-    title: post ? `${post.title} | Brush Boss Blog` : "Blog | Brush Boss Charlotte, NC",
-    description: post?.excerpt || "Expert tips and guides about land clearing in Charlotte, NC.",
-    canonicalUrl: `/blog/${slug}`,
+    title: pageTitle,
+    description: pageDescription,
+    canonicalUrl: pageCanonical,
     ogType: post ? "article" : "website",
+    ogImage: pageOgImage,
     jsonLd: post ? JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Article",
-      "headline": post.title,
-      "description": post.excerpt,
+      "headline": post.metaTitle || post.title,
+      "description": post.metaDescription || post.excerpt,
       "datePublished": post.publishedAt,
       "dateModified": post.updatedAt || post.publishedAt,
-      "author": { "@type": "Organization", "name": "Brush Boss" },
+      "author": { "@type": "Organization", "name": "Forestry Boss" },
       "publisher": {
         "@type": "Organization",
-        "name": "Brush Boss",
+        "name": "Forestry Boss",
         "url": window.location.origin
       },
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": `${window.location.origin}/blog/${slug}`
-      }
+      },
+      ...(pageOgImage ? { "image": pageOgImage } : {})
     }) : undefined,
   });
 
@@ -156,7 +163,7 @@ export default function BlogPostPage() {
               <CardContent className="p-6 text-center">
                 <h3 className="font-semibold text-lg">Ready to Clear Your Property?</h3>
                 <p className="text-sm text-muted-foreground mt-2 mb-4">
-                  Get a free, no-obligation quote from Brush Boss. We serve Charlotte, NC and surrounding areas within a 50-mile radius.
+                  Get a free, no-obligation quote from Forestry Boss. We serve Charlotte, NC and surrounding areas within a 50-mile radius.
                 </p>
                 <Link href="/quote">
                   <Button data-testid="blog-cta-quote">Get a Free Quote</Button>
